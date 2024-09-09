@@ -89,3 +89,20 @@ static_assert([] {
     return false;
   return true;
 }());
+
+struct Further : Derived
+{
+  char c;
+  VIR_MAKE_REFLECTABLE(Further, c);
+};
+
+static_assert(vir::refl::is_reflectable<Further>);
+static_assert(std::same_as<vir::refl::base_type<Further>, Derived>);
+
+struct AndAnother : Further
+{
+  VIR_MAKE_REFLECTABLE(AndAnother);
+};
+
+static_assert(vir::refl::is_reflectable<AndAnother>);
+static_assert(std::same_as<vir::refl::base_type<AndAnother>, Further>);

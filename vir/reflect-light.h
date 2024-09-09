@@ -35,15 +35,35 @@
   __VA_OPT__(+ VIR_REFLECT_LIGHT_COUNT_ARGS_AGAIN VIR_REFLECT_LIGHT_PARENS(__VA_ARGS__))
 #define VIR_REFLECT_LIGHT_COUNT_ARGS_AGAIN() VIR_REFLECT_LIGHT_COUNT_ARGS_IMPL
 
+namespace vir::refl::detail
+{
+  template <typename T, typename U>
+    struct make_dependent
+    { using type = U; };
+
+  template <typename T, typename U>
+    using make_dependent_t = typename make_dependent<T, U>::type;
+}
+
 #define VIR_MAKE_REFLECTABLE(T, ...)                                                               \
- public:                                                                                           \
-  template <typename U>                                                                            \
+public:                                                                                            \
+  friend void                                                                                      \
+  vir_refl_determine_base_type(...);                                                               \
+                                                                                                   \
+  template <std::derived_from<T> U>                                                                \
     requires (not std::is_same_v<U, T>)                                                            \
+      and std::is_void_v<decltype(vir_refl_determine_base_type(                                    \
+                                    std::declval<vir::refl::detail::make_dependent_t<U, T>>()))>   \
     friend T                                                                                       \
     vir_refl_determine_base_type(U const&);                                                        \
                                                                                                    \
-  friend void                                                                                      \
-  vir_refl_determine_base_type(...);                                                               \
+  template <std::derived_from<T> U, typename Not>                                                  \
+    requires (not std::is_same_v<U, T>) and (not std::derived_from<Not, T>)                        \
+      and std::is_void_v<decltype(vir_refl_determine_base_type(                                    \
+                                    std::declval<vir::refl::detail::make_dependent_t<U, T>>(),     \
+                                    std::declval<Not>()))>                                         \
+    friend T                                                                                       \
+    vir_refl_determine_base_type(U const&, Not const&);                                            \
                                                                                                    \
   constexpr decltype(auto)                                                                         \
   vir_refl_members_as_tuple() &                                                                    \
@@ -63,25 +83,61 @@ namespace vir
 {
   namespace refl
   {
-    template <typename T>
-      requires (not std::is_class_v<T>)
-      void vir_refl_determine_base_type(T const&);
-
-    template <typename T>
-      using base_type = decltype(vir_refl_determine_base_type(std::declval<T>()));
-
     namespace detail
     {
       template <typename T>
-        constexpr base_type<T> const&
+        concept class_type = std::is_class_v<T>;
+
+      //void vir_refl_determine_base_type(...);
+
+      struct None {};
+
+      template <typename T, typename Excluding>
+        using find_base
+          = decltype(vir_refl_determine_base_type(std::declval<T>(), std::declval<Excluding>()));
+
+      template <typename T, typename Last = None>
+        struct base_type_impl
+        { using type = void; };
+
+      // if Last is None we're starting the search
+      template <class_type T>
+        struct base_type_impl<T, None>
+        {
+          using type
+            = base_type_impl<T, decltype(vir_refl_determine_base_type(std::declval<T>()))>::type;
+        };
+
+      // if Last is void => there's no base type (void)
+      template <class_type T>
+        struct base_type_impl<T, void>
+        { using type = void; };
+
+      // otherwise, if find_base<T, Last> is void, Last is the base type
+      template <class_type T, class_type Last>
+        requires std::derived_from<T, Last> and std::is_void_v<find_base<T, Last>>
+        struct base_type_impl<T, Last>
+        { using type = Last; };
+
+      // otherwise, find_base<T, Last> is the next Last => recurse
+      template <class_type T, class_type Last>
+        requires std::derived_from<T, Last> and (not std::is_void_v<find_base<T, Last>>)
+        struct base_type_impl<T, Last>
+        { using type = typename base_type_impl<T, find_base<T, Last>>::type; };
+
+      template <typename T>
+        constexpr typename base_type_impl<T>::type const&
         to_base_type(T const& obj)
         { return obj; }
 
       template <typename T>
-        constexpr base_type<T>&
+        constexpr typename base_type_impl<T>::type&
         to_base_type(T& obj)
         { return obj; }
     }
+
+    template <typename T>
+      using base_type = typename detail::base_type_impl<T>::type;
 
     template <typename T>
       constexpr bool is_reflectable = false;
@@ -121,7 +177,8 @@ namespace vir
       constexpr decltype(auto)
       data_member(auto&& obj)
       {
-        using BaseType = decltype(vir_refl_determine_base_type(obj));
+        using Class = std::remove_cvref_t<decltype(obj)>;
+        using BaseType = base_type<Class>;
         constexpr size_t base_size = data_member_count<BaseType>;
         if constexpr (Idx < base_size)
           return data_member<Idx>(detail::to_base_type(obj));
