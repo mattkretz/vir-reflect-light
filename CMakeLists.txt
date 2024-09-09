@@ -28,5 +28,5 @@ install(
   FILE_PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ)
 
 # Test library
-add_library(test test.cpp)
-target_link_libraries(test PRIVATE vir-reflect-light)
+add_library(vir-reflect-light-test test.cpp)
+target_link_libraries(vir-reflect-light-test PRIVATE vir-reflect-light)
