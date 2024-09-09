@@ -48,6 +48,11 @@ struct Point : Base
 };
 ```
 
+### `vir::refl::is_reflectable<T>`
+
+`true` if the class `T` definition contains a valid `VIR_MAKE_REFLECTABLE` 
+expansion. `false` otherwise.
+
 ### `vir::refl::base_type<T>`
 
 Alias for the base type of the type `T`. Does not support multiple inheritance. 

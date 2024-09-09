@@ -53,6 +53,7 @@ struct Derived : Test
   VIR_MAKE_REFLECTABLE(Derived, in, out);
 };
 
+static_assert(vir::refl::is_reflectable<Derived>);
 static_assert(std::same_as<vir::refl::base_type<Derived>, Test>);
 static_assert(vir::refl::data_member_count<Derived> == 5);
 static_assert(vir::refl::data_member_name<Derived, 0> == "a");
