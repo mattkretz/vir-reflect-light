@@ -164,6 +164,9 @@ namespace vir
   template <size_t N>
     fixed_string(const char (&str)[N]) -> fixed_string<N - 1>;
 
+  template <fixed_string S>
+    using fixed_string_type = std::integral_constant<fixed_string<S.size>, S>;
+
   namespace literals
   {
     template <fixed_string S>
@@ -172,7 +175,7 @@ namespace vir
       { return S; }
 
     template <fixed_string S>
-      constexpr std::integral_constant<fixed_string<S.size>, S>
+      constexpr fixed_string_type<S>
       operator""_ic()
       { return {}; }
   }
