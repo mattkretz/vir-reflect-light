@@ -105,7 +105,8 @@ namespace vir
         struct base_type_impl<T, None>
         {
           using type
-            = base_type_impl<T, decltype(vir_refl_determine_base_type(std::declval<T>()))>::type;
+            = typename base_type_impl<T, decltype(vir_refl_determine_base_type(
+                                                    std::declval<T>()))>::type;
         };
 
       // if Last is void => there's no base type (void)

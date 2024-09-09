@@ -12,6 +12,10 @@ target_include_directories(
 # Require at least C++17
 target_compile_features(vir-reflect-light INTERFACE cxx_std_20)
 
+if(MSVC)
+  target_compile_options(vir-reflect-light INTERFACE /Zc:preprocessor)
+endif()
+
 # Define the install target
 install(TARGETS vir-reflect-light EXPORT vir-reflect-light-config)
 install(

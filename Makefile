@@ -1,4 +1,4 @@
-CXXFLAGS=-O2 -std=c++23 -g0
+CXXFLAGS=-O2 -std=c++20 -g0
 CXXFLAGS+=-Wall -Wextra -Wpedantic
 CXXFLAGS+=-I$(PWD)
 
