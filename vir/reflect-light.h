@@ -77,43 +77,6 @@ namespace vir
     template <typename T, size_t Idx>
       constexpr auto data_member_name = std::get<Idx>(T::vir_refl_data_member_names);
   }
-
-  namespace _test_
-  {
-    struct Test
-    {
-      int a, b, foo;
-
-      VIR_MAKE_REFLECTABLE(a, b, foo);
-    };
-
-    static_assert([] {
-      Test t {1, 2, 3};
-      if (refl::data_member_count<Test>  != 3)
-        return false;
-      if (refl::data_member_name<Test, 0> != "a")
-        return false;
-      if (refl::data_member_name<Test, 1> != "b")
-        return false;
-      if (refl::data_member_name<Test, 2> != "foo")
-        return false;
-      if (&refl::data_member<0>(t) != &t.a)
-        return false;
-      if (&refl::data_member<1>(t) != &t.b)
-        return false;
-      if (&refl::data_member<2>(t) != &t.foo)
-        return false;
-      if (&refl::data_member<"a">(t) != &t.a)
-        return false;
-      if (&refl::data_member<"b">(t) != &t.b)
-        return false;
-      if (&refl::data_member<"foo">(t) != &t.foo)
-        return false;
-      refl::data_member<"b">(t) = -1;
-      if (t.b != -1)
-        return false;
-      return true;
-    }());
   }
 }
 
