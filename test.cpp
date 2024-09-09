@@ -16,6 +16,7 @@ static_assert(vir::refl::data_member_count<Test> == 3);
 static_assert(vir::refl::data_member_name<Test, 0> == "a");
 static_assert(vir::refl::data_member_name<Test, 1> == "b");
 static_assert(vir::refl::data_member_name<Test, 2> == "foo");
+static_assert(vir::refl::class_name<Test> == "Test");
 
 static_assert([] {
   Test t {1, 2, 3};
@@ -61,6 +62,8 @@ static_assert(vir::refl::data_member_name<Derived, 1> == "b");
 static_assert(vir::refl::data_member_name<Derived, 2> == "foo");
 static_assert(vir::refl::data_member_name<Derived, 3> == "in");
 static_assert(vir::refl::data_member_name<Derived, 4> == "out");
+static_assert(vir::refl::class_name<Derived> == "Derived");
+static_assert(vir::refl::class_name<vir::refl::base_type<Derived>> == "Test");
 
 static_assert([] {
   Derived t {{1, 2, 3}, 1.1f, 2.2};

@@ -65,6 +65,8 @@ public:                                                                         
     friend T                                                                                       \
     vir_refl_determine_base_type(U const&, Not const&);                                            \
                                                                                                    \
+  static constexpr auto vir_refl_class_name = ::vir::fixed_string(#T);                             \
+                                                                                                   \
   constexpr decltype(auto)                                                                         \
   vir_refl_members_as_tuple() &                                                                    \
   { return std::tie(__VA_ARGS__); }                                                                \
@@ -136,6 +138,9 @@ namespace vir
         to_base_type(T& obj)
         { return obj; }
     }
+
+    template <typename T>
+      constexpr auto class_name = T::vir_refl_class_name;
 
     template <typename T>
       using base_type = typename detail::base_type_impl<T>::type;
