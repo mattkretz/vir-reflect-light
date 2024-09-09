@@ -18,7 +18,7 @@
 
 #define VIR_TO_STRINGS(...) __VA_OPT__(VIR_EXPAND(VIR_TO_STRINGS_IMPL(__VA_ARGS__)))
 #define VIR_TO_STRINGS_IMPL(x, ...) \
-  fixed_string(#x) __VA_OPT__(, VIR_TO_STRINGS_AGAIN VIR_PARENS(__VA_ARGS__))
+  ::vir::fixed_string(#x) __VA_OPT__(, VIR_TO_STRINGS_AGAIN VIR_PARENS(__VA_ARGS__))
 #define VIR_TO_STRINGS_AGAIN() VIR_TO_STRINGS_IMPL
 
 #define VIR_COUNT_ARGS(...) __VA_OPT__(VIR_EXPAND(VIR_COUNT_ARGS_IMPL(__VA_ARGS__)))
