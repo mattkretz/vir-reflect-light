@@ -1,0 +1,95 @@
+name: CI
+
+on:
+  push:
+    branches: [ master, main ]
+  pull_request:
+
+jobs:
+  gcc:
+    strategy:
+      fail-fast: false
+      matrix:
+        version: [9, 11, 13]
+
+    runs-on: ubuntu-22.04
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install GCC ${{ matrix.version }}
+        run: |
+          sudo add-apt-repository ppa:ubuntu-toolchain-r/test
+          sudo apt-get update
+          sudo apt-get install -y gcc-${{ matrix.version }} g++-${{ matrix.version }}
+
+      - name: Run test suite
+        env:
+          CXX: g++-${{ matrix.version }}
+        run: make check
+
+  clang:
+    strategy:
+      fail-fast: false
+      matrix:
+        version: [16, 18]
+
+    runs-on: ubuntu-22.04
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install Clang ${{ matrix.version }}
+        run: |
+          wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
+          sudo add-apt-repository 'deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy-${{ matrix.version }} main'
+          sudo add-apt-repository ppa:ubuntu-toolchain-r/test
+          sudo apt-get update
+          sudo apt-get install -y g++-13 clang-${{ matrix.version }}
+          sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-13 110 --slave /usr/bin/g++ g++ /usr/bin/g++-13
+
+      - name: Run test suite
+        env:
+          CXX: clang++-${{ matrix.version }}
+        run: make check
+
+  clang-libcxx:
+    strategy:
+      fail-fast: false
+      matrix:
+        version: [15, 18]
+
+    runs-on: ubuntu-22.04
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install Clang ${{ matrix.version }}
+        run: |
+          wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
+          sudo add-apt-repository 'deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy-${{ matrix.version }} main'
+          sudo apt-get update
+          sudo apt-get install -y clang-${{ matrix.version }} libc++-${{ matrix.version }}-dev libc++abi-${{ matrix.version }}-dev
+
+      - name: Run test suite
+        env:
+          CXX: clang++-${{ matrix.version }}
+          CXXFLAGS: -stdlib=libc++
+        run: make check
+
+  msvc:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2022]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Configure test
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE:STRING=Release
+
+      - name: Compile test
+        run: cmake --build build --config Release
