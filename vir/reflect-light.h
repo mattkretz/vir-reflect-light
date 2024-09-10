@@ -7,7 +7,7 @@
 #define VIR_REFLECT_LIGHT_H_
 
 #include "fixed_string.h"
-#include <tuple>
+#include "simple_tuple.h"
 
 // recursive macro implementation inspired by https://www.scs.stanford.edu/~dm/blog/va-opt.html
 
@@ -25,7 +25,7 @@
 
 #define VIR_REFLECT_LIGHT_TO_STRINGS(...)                                                          \
   __VA_OPT__(VIR_REFLECT_LIGHT_EXPAND(VIR_REFLECT_LIGHT_TO_STRINGS_IMPL(__VA_ARGS__)))
-#define VIR_REFLECT_LIGHT_TO_STRINGS_IMPL(x, ...) ::vir::fixed_string(#x)                          \
+#define VIR_REFLECT_LIGHT_TO_STRINGS_IMPL(x, ...) ::vir::fixed_string<#x>()                        \
   __VA_OPT__(, VIR_REFLECT_LIGHT_TO_STRINGS_AGAIN VIR_REFLECT_LIGHT_PARENS(__VA_ARGS__))
 #define VIR_REFLECT_LIGHT_TO_STRINGS_AGAIN() VIR_REFLECT_LIGHT_TO_STRINGS_IMPL
 
@@ -34,6 +34,12 @@
 #define VIR_REFLECT_LIGHT_COUNT_ARGS_IMPL(x, ...) 1                                                \
   __VA_OPT__(+ VIR_REFLECT_LIGHT_COUNT_ARGS_AGAIN VIR_REFLECT_LIGHT_PARENS(__VA_ARGS__))
 #define VIR_REFLECT_LIGHT_COUNT_ARGS_AGAIN() VIR_REFLECT_LIGHT_COUNT_ARGS_IMPL
+
+#define VIR_REFLECT_LIGHT_DECLTYPES(...)                                                           \
+  __VA_OPT__(VIR_REFLECT_LIGHT_EXPAND(VIR_REFLECT_LIGHT_DECLTYPES_IMPL(__VA_ARGS__)))
+#define VIR_REFLECT_LIGHT_DECLTYPES_IMPL(x, ...) decltype(x)                                       \
+  __VA_OPT__(, VIR_REFLECT_LIGHT_DECLTYPES_AGAIN VIR_REFLECT_LIGHT_PARENS(__VA_ARGS__))
+#define VIR_REFLECT_LIGHT_DECLTYPES_AGAIN() VIR_REFLECT_LIGHT_DECLTYPES_IMPL
 
 namespace vir::refl::detail
 {
@@ -55,7 +61,7 @@ public:                                                                         
       and std::is_void_v<decltype(vir_refl_determine_base_type(                                    \
                                     std::declval<vir::refl::detail::make_dependent_t<U, T>>()))>   \
     friend T                                                                                       \
-    vir_refl_determine_base_type(U const&);                                                        \
+    vir_refl_determine_base_type(U const&) { return std::declval<T>(); }                           \
                                                                                                    \
   template <std::derived_from<T> U, typename Not>                                                  \
     requires (not std::is_same_v<U, T>) and (not std::derived_from<Not, T>)                        \
@@ -63,23 +69,25 @@ public:                                                                         
                                     std::declval<vir::refl::detail::make_dependent_t<U, T>>(),     \
                                     std::declval<Not>()))>                                         \
     friend T                                                                                       \
-    vir_refl_determine_base_type(U const&, Not const&);                                            \
+    vir_refl_determine_base_type(U const&, Not const&) { return std::declval<T>(); }               \
                                                                                                    \
-  using vir_refl_class_name = vir::fixed_string_type<#T>;                                          \
+  using vir_refl_class_name = vir::fixed_string<#T>;                                               \
                                                                                                    \
-  constexpr decltype(auto)                                                                         \
+  constexpr auto                                                                                   \
   vir_refl_members_as_tuple() &                                                                    \
-  { return std::tie(__VA_ARGS__); }                                                                \
+  { return vir::tie(__VA_ARGS__); }                                                                \
                                                                                                    \
-  constexpr decltype(auto)                                                                         \
+  constexpr auto                                                                                   \
   vir_refl_members_as_tuple() const&                                                               \
-  { return std::tie(__VA_ARGS__); }                                                                \
+  { return vir::tie(__VA_ARGS__); }                                                                \
+                                                                                                   \
+  using vir_refl_data_member_types = vir::simple_tuple<VIR_REFLECT_LIGHT_DECLTYPES(__VA_ARGS__)>;  \
                                                                                                    \
   static constexpr std::integral_constant<std::size_t, VIR_REFLECT_LIGHT_COUNT_ARGS(__VA_ARGS__)>  \
     vir_refl_data_member_count {};                                                                 \
                                                                                                    \
   static constexpr auto vir_refl_data_member_names                                                 \
-    = std::tuple{VIR_REFLECT_LIGHT_TO_STRINGS(__VA_ARGS__)}
+    = vir::simple_tuple{VIR_REFLECT_LIGHT_TO_STRINGS(__VA_ARGS__)}
 
 namespace vir
 {
@@ -141,18 +149,23 @@ namespace vir
       template <auto X>
         inline constexpr std::integral_constant<std::remove_const_t<decltype(X)>, X> ic = {};
 
-      template <auto X>
-        inline constexpr auto string_value = X;
+      template <typename T>
+        consteval auto
+        type_to_string(T*)
+        {
+          constexpr fixed_string<__PRETTY_FUNCTION__> fun;
+          constexpr auto equal_char = fun.find_char(ic<'='>);
+          if constexpr (equal_char + 2 < fun.size and fun[equal_char + 1] == ' ')
+            {
+              constexpr auto fun2
+                = fun.substring(ic<equal_char < fun.size ? equal_char + 2 : 0>);
+              constexpr auto fun3 = fun2.resize(ic<fun2.find_char(ic<']'>)>);
+              return fun3;
+            }
+          else
+            return fun;
+        }
     }
-
-    template <typename T>
-      inline constexpr auto const& class_name
-        = detail::string_value<
-            resize(T::vir_refl_class_name::value,
-                   detail::ic<T::vir_refl_class_name::value.find_char('<')>)>;
-
-    template <typename T>
-      using base_type = typename detail::base_type_impl<T>::type;
 
     template <typename T>
       constexpr bool is_reflectable = false;
@@ -162,35 +175,60 @@ namespace vir
       constexpr bool is_reflectable<T> = true;
 
     template <typename T>
+      concept reflectable = std::is_class_v<std::remove_cvref_t<T>> and requires {
+        { std::remove_cvref_t<T>::vir_refl_data_member_count } -> std::convertible_to<size_t>;
+      };
+
+    template <typename T>
+      inline constexpr auto type_name = detail::type_to_string(static_cast<T*>(nullptr));
+
+    template <>
+      inline constexpr auto type_name<int> = vir::fixed_string<"int"> {};
+
+    template <detail::class_type T>
+      inline constexpr auto class_name = [](auto tname) {
+        return tname.resize(tname.find_char(detail::ic<'<'>));
+      }(detail::type_to_string(static_cast<T*>(nullptr)));
+
+    template <typename T>
+      using base_type = typename detail::base_type_impl<T>::type;
+
+    template <typename T>
       constexpr size_t data_member_count = 0;
 
-    template <typename T>
-      requires std::is_class_v<T> and std::is_void_v<base_type<T>>
+    template <reflectable T>
+      requires std::is_void_v<base_type<T>>
       constexpr size_t data_member_count<T> = T::vir_refl_data_member_count;
 
-    template <typename T>
-      requires std::is_class_v<T> and (not std::is_void_v<base_type<T>>)
+    template <reflectable T>
+      requires (not std::is_void_v<base_type<T>>)
       constexpr size_t data_member_count<T>
         = T::vir_refl_data_member_count + data_member_count<base_type<T>>;
 
     template <typename T, size_t Idx>
       constexpr auto data_member_name = [] {
         static_assert(Idx < data_member_count<T>);
-        return fixed_string("Error");
+        return vir::fixed_string<"Error">();
       }();
 
-    template <typename T, size_t Idx>
+    template <reflectable T, size_t Idx>
       requires (Idx < data_member_count<base_type<T>>)
       constexpr auto data_member_name<T, Idx> = data_member_name<base_type<T>, Idx>;
 
-    template <typename T, size_t Idx>
+    template <reflectable T, size_t Idx>
       requires (Idx >= data_member_count<base_type<T>>) and (Idx < data_member_count<T>)
       constexpr auto data_member_name<T, Idx>
-        = std::get<Idx - data_member_count<base_type<T>>>(T::vir_refl_data_member_names);
+        = T::vir_refl_data_member_names[detail::ic<Idx - data_member_count<base_type<T>>>];
+
+    template <reflectable T, fixed_string_arg Name>
+      constexpr auto data_member_index
+        = detail::ic<[]<size_t... Is>(std::index_sequence<Is...>) {
+                      return ((Name == data_member_name<T, Is>.value ? Is : 0) + ...);
+                    }(std::make_index_sequence<data_member_count<T>>())>;
 
     template <size_t Idx>
       constexpr decltype(auto)
-      data_member(auto&& obj)
+      data_member(reflectable auto&& obj)
       {
         using Class = std::remove_cvref_t<decltype(obj)>;
         using BaseType = base_type<Class>;
@@ -198,19 +236,31 @@ namespace vir
         if constexpr (Idx < base_size)
           return data_member<Idx>(detail::to_base_type(obj));
         else
-          return std::get<Idx - base_size>(obj.vir_refl_members_as_tuple());
+          return obj.vir_refl_members_as_tuple()[detail::ic<Idx - base_size>];
       }
 
-    template <fixed_string Name>
+    template <fixed_string_arg Name>
       constexpr decltype(auto)
-      data_member(auto&& obj)
-      {
-        using Class = std::remove_cvref_t<decltype(obj)>;
-        return [&]<size_t... Is>(std::index_sequence<Is...>) -> decltype(auto) {
-          constexpr size_t idx = ((Name == data_member_name<Class, Is> ? Is : 0) + ...);
-          return data_member<idx>(obj);
-        }(std::make_index_sequence<data_member_count<Class>>());
-      }
+      data_member(reflectable auto&& obj)
+      { return data_member<data_member_index<std::remove_cvref_t<decltype(obj)>, Name>>(obj); }
+
+    namespace detail
+    {
+      template <typename T, size_t Idx>
+        struct data_member_type_impl
+        {
+          using type = T::vir_refl_data_member_types::template type_at<
+                         Idx - data_member_count<base_type<T>>>;
+        };
+
+      template <typename T, size_t Idx>
+        requires (Idx < data_member_count<base_type<T>>)
+        struct data_member_type_impl<T, Idx>
+        { using type = typename data_member_type_impl<base_type<T>, Idx>::type; };
+    }
+
+    template <reflectable T, size_t Idx>
+      using data_member_type = typename detail::data_member_type_impl<T, Idx>::type;
   }
 }
 
