@@ -109,3 +109,36 @@ struct AndAnother : Further
 
 static_assert(vir::refl::is_reflectable<AndAnother>);
 static_assert(std::same_as<vir::refl::base_type<AndAnother>, Further>);
+
+namespace ns
+{
+  template <typename T>
+  struct Type
+  {
+    int blah;
+    VIR_MAKE_REFLECTABLE(ns::Type<T>, blah);
+  };
+
+  struct Type2 : Type<Type2>
+  {
+    VIR_MAKE_REFLECTABLE(ns::Type2);
+  };
+}
+
+static_assert(vir::refl::is_reflectable<ns::Type<int>>);
+static_assert(std::same_as<vir::refl::base_type<ns::Type<int>>, void>);
+static_assert(vir::refl::data_member_count<ns::Type<int>> == 1);
+static_assert(vir::refl::class_name<ns::Type<int>> == "ns::Type");
+
+static_assert(vir::refl::is_reflectable<ns::Type2>);
+static_assert(std::same_as<vir::refl::base_type<ns::Type2>, ns::Type<ns::Type2>>);
+static_assert(vir::refl::data_member_count<ns::Type2> == 1);
+static_assert(vir::refl::class_name<ns::Type2> == "ns::Type2");
+
+const char*
+string_test()
+{ return vir::refl::class_name<ns::Type<int>>.c_str(); }
+
+std::string_view
+string_test2()
+{ return vir::refl::class_name<ns::Type<float>>; }

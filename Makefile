@@ -16,7 +16,7 @@ install:
 
 .PHONY: check
 check: test.o
-	test "$$(nm -C -f just test.o)" = "$$(echo 'test0(Test&)\ntest1()')"
+	./check-result.sh
 
 test.o: test.cpp vir/*.h
 	$(CXX) $(CXXFLAGS) -o $@ -c $<

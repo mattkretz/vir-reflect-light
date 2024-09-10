@@ -38,9 +38,9 @@ namespace vir
 
       template <size_t... Is>
         consteval
-        fixed_string(std::index_sequence<Is...>, const char (&txt)[sizeof...(Is) + 1]) noexcept
+        fixed_string(std::index_sequence<Is...>, const char *txt) noexcept
         : data_{txt[Is]...}
-        {}
+        { static_assert(sizeof...(Is) == N); }
 
       consteval
       fixed_string(const char (&txt)[N + 1]) noexcept
@@ -73,7 +73,7 @@ namespace vir
 
       constexpr const_reference
       back() const
-      { return data_[size.value - 1]; }
+      { return data_[N - 1]; }
 
       // [fixed.string.ops], string operations
       constexpr const_pointer
@@ -86,11 +86,11 @@ namespace vir
 
       constexpr std::string_view
       view() const noexcept
-      { return {data_, size}; }
+      { return {data_, N}; }
 
       constexpr
       operator std::string_view() const noexcept
-      { return {data_, size}; }
+      { return {data_, N}; }
 
       template <size_t N2>
         constexpr friend fixed_string<N + N2>
@@ -133,6 +133,26 @@ namespace vir
           return [&]<size_t... Is>(std::index_sequence<Is...>) {
             return fixed_string<N1 + N - 1>{(Is < N1 ? lhs[Is] : rhs[Is - N1])...};
           }(std::make_index_sequence<N1 + N - 1>());
+        }
+
+      constexpr size_t
+      find_char(char c) const noexcept
+      {
+        for (size_t i = 0; i < N; ++i)
+          {
+            if (data_[i] == c)
+              return i;
+          }
+        return N;
+      }
+
+      template <typename NewSize>
+        friend consteval fixed_string<NewSize::value>
+        resize(const fixed_string& old, NewSize) noexcept
+        {
+          static_assert(NewSize::value <= N);
+          return fixed_string<NewSize::value>(
+                   std::make_index_sequence<NewSize::value>(), old.data_);
         }
 
       // [fixed.string.comparison], non-member comparison functions

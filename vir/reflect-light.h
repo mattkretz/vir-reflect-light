@@ -137,10 +137,19 @@ namespace vir
         constexpr typename base_type_impl<T>::type&
         to_base_type(T& obj)
         { return obj; }
+
+      template <auto X>
+        inline constexpr std::integral_constant<std::remove_const_t<decltype(X)>, X> ic = {};
+
+      template <auto X>
+        inline constexpr auto string_value = X;
     }
 
     template <typename T>
-      inline constexpr auto class_name = T::vir_refl_class_name::value;
+      inline constexpr auto const& class_name
+        = detail::string_value<
+            resize(T::vir_refl_class_name::value,
+                   detail::ic<T::vir_refl_class_name::value.find_char('<')>)>;
 
     template <typename T>
       using base_type = typename detail::base_type_impl<T>::type;
