@@ -54,7 +54,7 @@ namespace vir
         { static_assert(sizeof...(Is) == N); }
 
       consteval
-      fixed_string_arg(const char (&txt)[N + 1]) noexcept
+      fixed_string_arg(const char *txt) noexcept
       : fixed_string_arg(std::make_index_sequence<N>(), txt)
       {}
 

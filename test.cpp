@@ -7,24 +7,28 @@
 #include <vir/simple_tuple.h>
 #include <utility>
 
-namespace d = vir::refl::detail;
+[[maybe_unused]] constexpr auto i0 = vir::refl::detail::ic<0>;
+[[maybe_unused]] constexpr auto i1 = vir::refl::detail::ic<1>;
+[[maybe_unused]] constexpr auto i2 = vir::refl::detail::ic<2>;
+[[maybe_unused]] constexpr auto i3 = vir::refl::detail::ic<3>;
+/*
+[[maybe_unused]] constexpr auto i4 = vir::refl::detail::ic<4>;
+[[maybe_unused]] constexpr auto i5 = vir::refl::detail::ic<5>;
+[[maybe_unused]] constexpr auto i6 = vir::refl::detail::ic<6>;
+[[maybe_unused]] constexpr auto i7 = vir::refl::detail::ic<7>;
+[[maybe_unused]] constexpr auto i8 = vir::refl::detail::ic<8>;
+[[maybe_unused]] constexpr auto i9 = vir::refl::detail::ic<9>;
+[[maybe_unused]] constexpr auto i10 = vir::refl::detail::ic<10>;
+[[maybe_unused]] constexpr auto i11 = vir::refl::detail::ic<11>;
+[[maybe_unused]] constexpr auto i12 = vir::refl::detail::ic<12>;
+[[maybe_unused]] constexpr auto i13 = vir::refl::detail::ic<13>;
+[[maybe_unused]] constexpr auto i14 = vir::refl::detail::ic<14>;
+[[maybe_unused]] constexpr auto i15 = vir::refl::detail::ic<15>;
+*/
 
-[[maybe_unused]] constexpr auto i0 = d::ic<0>;
-[[maybe_unused]] constexpr auto i1 = d::ic<1>;
-[[maybe_unused]] constexpr auto i2 = d::ic<2>;
-[[maybe_unused]] constexpr auto i3 = d::ic<3>;
-/*[[maybe_unused]] constexpr auto i4 = d::ic<4>;
-[[maybe_unused]] constexpr auto i5 = d::ic<5>;
-[[maybe_unused]] constexpr auto i6 = d::ic<6>;
-[[maybe_unused]] constexpr auto i7 = d::ic<7>;
-[[maybe_unused]] constexpr auto i8 = d::ic<8>;
-[[maybe_unused]] constexpr auto i9 = d::ic<9>;
-[[maybe_unused]] constexpr auto i10 = d::ic<10>;
-[[maybe_unused]] constexpr auto i11 = d::ic<11>;
-[[maybe_unused]] constexpr auto i12 = d::ic<12>;
-[[maybe_unused]] constexpr auto i13 = d::ic<13>;
-[[maybe_unused]] constexpr auto i14 = d::ic<14>;
-[[maybe_unused]] constexpr auto i15 = d::ic<15>;*/
+// ==============================================
+// ================ simple_tuple ================
+// ==============================================
 
 static_assert(vir::simple_tuple {1, 2} != vir::simple_tuple {2, 3});
 static_assert(vir::simple_tuple {1, 2}[std::integral_constant<int, 0>()] == 1);
@@ -47,6 +51,46 @@ static_assert([] {
     return false;
   return true;
 }());
+
+// ==============================================
+// ================ fixed_string ================
+// ==============================================
+
+static_assert(vir::fixed_string_arg("") == "");
+static_assert(vir::fixed_string_arg("text") == "text");
+static_assert(vir::fixed_string_arg("text") <= "text");
+static_assert(vir::fixed_string_arg("text") >= "text");
+static_assert(vir::fixed_string_arg("text") != "txet");
+static_assert(vir::fixed_string_arg("text") <  "txet");
+static_assert(vir::fixed_string_arg("text") <= "txet");
+
+static_assert(""     == vir::fixed_string_arg(""));
+static_assert("text" == vir::fixed_string_arg("text"));
+static_assert("text" <= vir::fixed_string_arg("text"));
+static_assert("text" >= vir::fixed_string_arg("text"));
+static_assert("txet" != vir::fixed_string_arg("text"));
+static_assert("txet" >  vir::fixed_string_arg("text"));
+static_assert("txet" >= vir::fixed_string_arg("text"));
+
+static_assert(vir::fixed_string<"">() == "");
+static_assert(vir::fixed_string<"text">() == "text");
+static_assert(vir::fixed_string<"text">() <= "text");
+static_assert(vir::fixed_string<"text">() >= "text");
+static_assert(vir::fixed_string<"text">() != "txet");
+static_assert(vir::fixed_string<"text">() <  "txet");
+static_assert(vir::fixed_string<"text">() <= "txet");
+
+static_assert("" == vir::fixed_string<"">());
+static_assert("text" == vir::fixed_string<"text">());
+static_assert("text" <= vir::fixed_string<"text">());
+static_assert("text" >= vir::fixed_string<"text">());
+static_assert("txet" != vir::fixed_string<"text">());
+static_assert("txet" >  vir::fixed_string<"text">());
+static_assert("txet" >= vir::fixed_string<"text">());
+
+// ==============================================
+// =================  vir::refl =================
+// ==============================================
 
 static_assert(vir::refl::type_name<int> == vir::fixed_string<"int">());
 static_assert(vir::refl::type_name<float> == "float");
