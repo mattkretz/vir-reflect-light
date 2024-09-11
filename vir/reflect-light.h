@@ -153,15 +153,43 @@ namespace vir
         consteval auto
         type_to_string(T*)
         {
+#ifdef __GNUC__
           constexpr fixed_string<__PRETTY_FUNCTION__> fun;
           constexpr auto equal_char = fun.find_char(ic<'='>);
-          if constexpr (equal_char + 2 < fun.size and fun[equal_char + 1] == ' ')
+          if constexpr (equal_char > 19 and equal_char + 2 < fun.size
+                          and fun[equal_char + 1] == ' ' and fun[equal_char - 2] == 'T')
             {
               constexpr auto fun2
                 = fun.substring(ic<equal_char < fun.size ? equal_char + 2 : 0>);
               constexpr auto fun3 = fun2.resize(ic<fun2.find_char(ic<']'>)>);
               return fun3;
             }
+#else
+          constexpr fixed_string<__FUNCSIG__> fun;
+          constexpr auto lt_char = fun.find_char(ic<'<'>);
+          if constexpr (lt_char > 19 and lt_char + 2 < fun.size and fun[lt_char - 1] == 'g')
+            {
+              constexpr auto fun2
+                = fun.substring(ic<lt_char < fun.size ? lt_char + 1 : 0>);
+              constexpr auto right = fun2.find_char(ic<'('>);
+              if constexpr (fun2[right - 1] != '>')
+                return fun;
+              else
+                {
+                  constexpr auto fun3 = fun2.resize(ic<right - 1>);
+                  // remove 'struct ', 'union ', 'class ', or 'enum ' prefix.
+                  if constexpr (fun3.size > 7 and fun3.resize(ic<7>) == "struct ")
+                    return fun3.substring(ic<8>);
+                  else if constexpr (fun3.size > 6 and (fun3.resize(ic<6>) == "class "
+                                                          or fun3.resize(ic<6>) == "union "))
+                    return fun3.substring(ic<7>);
+                  else if constexpr (fun3.size > 5 and fun3.resize(ic<5>) == "enum ")
+                    return fun3.substring(ic<6>);
+                  else
+                    return fun3;
+                }
+            }
+#endif
           else
             return fun;
         }
@@ -185,10 +213,9 @@ namespace vir
     template <>
       inline constexpr auto type_name<int> = vir::fixed_string<"int"> {};
 
-    template <detail::class_type T>
-      inline constexpr auto class_name = [](auto tname) {
-        return tname.resize(tname.find_char(detail::ic<'<'>));
-      }(detail::type_to_string(static_cast<T*>(nullptr)));
+    template <typename T>
+      inline constexpr auto class_name
+        = type_name<T>.resize(type_name<T>.find_char(detail::ic<'<'>));
 
     template <typename T>
       using base_type = typename detail::base_type_impl<T>::type;

@@ -56,14 +56,37 @@ namespace ns0
   template <typename T, auto X>
     struct NotReflected
     {};
-}
 
-static_assert(vir::refl::class_name<ns0::NotReflected<int, 5.f>> == "ns0::NotReflected");
-#ifdef __clang__
-static_assert(vir::refl::type_name<ns0::NotReflected<int, 5.f>> == "ns0::NotReflected<int, 5.000000e+00>");
+  template <typename>
+    class Foo
+    {};
+
+  template <typename>
+    union Bar
+    { int x; float y; };
+
+  enum Enum
+  { A, B, C };
+
+  enum class EnumClass
+  {};
+
+  static_assert(vir::refl::class_name<NotReflected<int, 5.f>> == "ns0::NotReflected");
+  static_assert(vir::refl::class_name<Foo<int>> == "ns0::Foo");
+  static_assert(vir::refl::class_name<Bar<float>> == "ns0::Bar");
+  static_assert(vir::refl::class_name<Enum> == "ns0::Enum");
+  static_assert(vir::refl::class_name<EnumClass> == "ns0::EnumClass");
+  static_assert(vir::refl::type_name<NotReflected<int, 5>>
+#ifdef __GNUC__
+                  == "ns0::NotReflected<int, 5>");
 #else
-static_assert(vir::refl::type_name<ns0::NotReflected<int, 5.f>> == "ns0::NotReflected<int, 5.0e+0f>");
+                  == "ns0::NotReflected<int,5>");
 #endif
+  static_assert(vir::refl::type_name<Foo<int>> == "ns0::Foo<int>");
+  static_assert(vir::refl::type_name<Bar<float>> == "ns0::Bar<float>");
+  static_assert(vir::refl::type_name<Enum> == "ns0::Enum");
+  static_assert(vir::refl::type_name<EnumClass> == "ns0::EnumClass");
+}
 
 struct Test
 {
