@@ -91,6 +91,11 @@ If no base type exists (is known) an alias for `void`.
 
 - ...
 
+### `vir::refl::data_member_type<T, Idx>`, `data_member_type<T, Name>`
+
+Alias for the type of the data member with index `Idx` or name `Name` of class 
+`T`.
+
 ### `vir::refl::data_member<Idx>(obj)`
 
 Returns a (const) lvalue-reference to the member of `obj` at the given index.

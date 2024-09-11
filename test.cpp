@@ -166,6 +166,9 @@ static_assert(vir::refl::class_name<Test> == "Test");
 static_assert(std::same_as<vir::refl::data_member_type<Test, 0>, int>);
 static_assert(std::same_as<vir::refl::data_member_type<Test, 1>, int>);
 static_assert(std::same_as<vir::refl::data_member_type<Test, 2>, int>);
+static_assert(std::same_as<vir::refl::data_member_type<Test, "a">, int>);
+static_assert(std::same_as<vir::refl::data_member_type<Test, "b">, int>);
+static_assert(std::same_as<vir::refl::data_member_type<Test, "foo">, int>);
 
 static_assert([] {
   Test t {1, 2, 3};
@@ -218,6 +221,11 @@ static_assert(std::same_as<vir::refl::data_member_type<Derived, 1>, int>);
 static_assert(std::same_as<vir::refl::data_member_type<Derived, 2>, int>);
 static_assert(std::same_as<vir::refl::data_member_type<Derived, 3>, float>);
 static_assert(std::same_as<vir::refl::data_member_type<Derived, 4>, double>);
+static_assert(std::same_as<vir::refl::data_member_type<Derived, "a">, int>);
+static_assert(std::same_as<vir::refl::data_member_type<Derived, "b">, int>);
+static_assert(std::same_as<vir::refl::data_member_type<Derived, "foo">, int>);
+static_assert(std::same_as<vir::refl::data_member_type<Derived, "in">, float>);
+static_assert(std::same_as<vir::refl::data_member_type<Derived, "out">, double>);
 
 static_assert([] {
   Derived t {{1, 2, 3}, 1.1f, 2.2};

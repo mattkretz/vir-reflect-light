@@ -306,21 +306,56 @@ namespace vir
 
     namespace detail
     {
-      template <typename T, size_t Idx>
-        struct data_member_type_impl
+      template <size_t N>
+        struct data_member_id
+        : vir::fixed_string_arg<N>
         {
-          using type = typename T::vir_refl_data_member_types::template type_at<
-                         Idx - data_member_count<base_type<T>>>;
+          static constexpr bool is_name = N != 0;
+
+          const size_t index;
+
+          consteval
+          data_member_id(const char* txt) requires (N != 0)
+            : fixed_string_arg<N>(txt), index(-1)
+          {}
+
+          consteval
+          data_member_id(std::convertible_to<size_t> auto idx) requires (N == 0)
+            : fixed_string_arg<0>(), index(idx)
+          {}
+
+          consteval vir::fixed_string_arg<N> const&
+          string() const
+          { return *this; }
         };
 
-      template <typename T, size_t Idx>
-        requires (Idx < data_member_count<base_type<T>>)
+      template <size_t N>
+        data_member_id(const char (&str)[N]) -> data_member_id<N - 1>;
+
+      template <std::convertible_to<size_t> T>
+        data_member_id(T) -> data_member_id<0>;
+
+      template <typename T, data_member_id Idx>
+        struct data_member_type_impl
+        : data_member_type_impl<T, data_member_index<T, Idx.string()>>
+        {};
+
+      template <typename T, data_member_id Idx>
+        requires (not Idx.is_name) and (Idx.index >= data_member_count<base_type<T>>)
         struct data_member_type_impl<T, Idx>
-        { using type = typename data_member_type_impl<base_type<T>, Idx>::type; };
+        {
+          using type = typename T::vir_refl_data_member_types::template type_at<
+                         Idx.index - data_member_count<base_type<T>>>;
+        };
+
+      template <typename T, data_member_id Idx>
+        requires (not Idx.is_name) and (Idx.index < data_member_count<base_type<T>>)
+        struct data_member_type_impl<T, Idx>
+        { using type = typename data_member_type_impl<base_type<T>, Idx.index>::type; };
     }
 
-    template <reflectable T, size_t Idx>
-      using data_member_type = typename detail::data_member_type_impl<T, Idx>::type;
+    template <reflectable T, detail::data_member_id Id>
+      using data_member_type = typename detail::data_member_type_impl<T, Id>::type;
   }
 }
 
