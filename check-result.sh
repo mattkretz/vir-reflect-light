@@ -1,5 +1,5 @@
 #!/bin/sh
-symbols="$(nm -SC test.o)"
+symbols="$(nm -SC test.o|grep -v ' U __gxx_personality_v0')"
 symbol_count=$(echo "$symbols"|wc -l)
 string_count=$(echo "$symbols"|grep -c ' [Vu] .*string_storage')
 rodata_size_arr=$(echo "$symbols"|grep '[0-9a-zA-Z] [Vur] \<'|cut -d' ' -f2|sed 's/^0*//')

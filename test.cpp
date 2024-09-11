@@ -71,7 +71,7 @@ namespace ns0
   enum class EnumClass
   {};
 
-  static_assert(vir::refl::class_name<NotReflected<int, 5.f>> == "ns0::NotReflected");
+  static_assert(vir::refl::class_name<NotReflected<int, 5>> == "ns0::NotReflected");
   static_assert(vir::refl::class_name<Foo<int>> == "ns0::Foo");
   static_assert(vir::refl::class_name<Bar<float>> == "ns0::Bar");
   static_assert(vir::refl::class_name<Enum> == "ns0::Enum");

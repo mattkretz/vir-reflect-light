@@ -299,7 +299,7 @@ namespace vir
       template <typename T, size_t Idx>
         struct data_member_type_impl
         {
-          using type = T::vir_refl_data_member_types::template type_at<
+          using type = typename T::vir_refl_data_member_types::template type_at<
                          Idx - data_member_count<base_type<T>>>;
         };
 
