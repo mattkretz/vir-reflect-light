@@ -196,13 +196,6 @@ namespace vir
     }
 
     template <typename T>
-      constexpr bool is_reflectable = false;
-
-    template <detail::class_type T>
-      requires requires { { T::vir_refl_data_member_count } -> std::convertible_to<size_t>; }
-      constexpr bool is_reflectable<T> = true;
-
-    template <typename T>
       concept reflectable = std::is_class_v<std::remove_cvref_t<T>> and requires {
         { std::remove_cvref_t<T>::vir_refl_data_member_count } -> std::convertible_to<size_t>;
       };

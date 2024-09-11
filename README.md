@@ -48,10 +48,10 @@ struct Point : Base
 };
 ```
 
-### `vir::refl::is_reflectable<T>`
+### `vir::refl::reflectable<T>`
 
-`true` if the class `T` definition contains a valid `VIR_MAKE_REFLECTABLE` 
-expansion. `false` otherwise.
+Concept that is satisfied if the class `T` definition contains a valid 
+`VIR_MAKE_REFLECTABLE` expansion.
 
 ### `vir::refl::base_type<T>`
 

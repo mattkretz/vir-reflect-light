@@ -141,7 +141,7 @@ struct Derived : Test
   VIR_MAKE_REFLECTABLE(Derived, in, out);
 };
 
-static_assert(vir::refl::is_reflectable<Derived>);
+static_assert(vir::refl::reflectable<Derived>);
 static_assert(std::same_as<vir::refl::base_type<Derived>, Test>);
 static_assert(vir::refl::data_member_count<Derived> == 5);
 static_assert(vir::refl::data_member_name<Derived, 0> == "a");
@@ -191,7 +191,7 @@ struct Further : Derived
   VIR_MAKE_REFLECTABLE(Further, c);
 };
 
-static_assert(vir::refl::is_reflectable<Further>);
+static_assert(vir::refl::reflectable<Further>);
 static_assert(std::same_as<vir::refl::base_type<Further>, Derived>);
 
 struct AndAnother : Further
@@ -199,7 +199,7 @@ struct AndAnother : Further
   VIR_MAKE_REFLECTABLE(AndAnother);
 };
 
-static_assert(vir::refl::is_reflectable<AndAnother>);
+static_assert(vir::refl::reflectable<AndAnother>);
 static_assert(std::same_as<vir::refl::base_type<AndAnother>, Further>);
 
 namespace ns
@@ -217,13 +217,13 @@ namespace ns
   };
 }
 
-static_assert(vir::refl::is_reflectable<ns::Type<int>>);
+static_assert(vir::refl::reflectable<ns::Type<int>>);
 static_assert(std::same_as<vir::refl::base_type<ns::Type<int>>, void>);
 static_assert(vir::refl::data_member_count<ns::Type<int>> == 1);
 static_assert(vir::refl::type_name<ns::Type<int>> == "ns::Type<int>");
 static_assert(vir::refl::class_name<ns::Type<int>> == "ns::Type");
 
-static_assert(vir::refl::is_reflectable<ns::Type2>);
+static_assert(vir::refl::reflectable<ns::Type2>);
 static_assert(std::same_as<vir::refl::base_type<ns::Type2>, ns::Type<ns::Type2>>);
 static_assert(vir::refl::data_member_count<ns::Type2> == 1);
 static_assert(vir::refl::class_name<ns::Type2> == "ns::Type2");
