@@ -210,8 +210,31 @@ namespace vir
     template <typename T>
       inline constexpr auto type_name = detail::type_to_string(static_cast<T*>(nullptr));
 
-    template <>
-      inline constexpr auto type_name<int> = vir::fixed_string<"int"> {};
+#define VIR_SPECIALIZE_TYPE_NAME(T)                                                                \
+    template <>                                                                                    \
+      inline constexpr auto type_name<T> = vir::fixed_string<#T> {}
+
+    VIR_SPECIALIZE_TYPE_NAME(bool);
+    VIR_SPECIALIZE_TYPE_NAME(char);
+    VIR_SPECIALIZE_TYPE_NAME(wchar_t);
+    VIR_SPECIALIZE_TYPE_NAME(char8_t);
+    VIR_SPECIALIZE_TYPE_NAME(char16_t);
+    VIR_SPECIALIZE_TYPE_NAME(char32_t);
+    VIR_SPECIALIZE_TYPE_NAME(signed char);
+    VIR_SPECIALIZE_TYPE_NAME(unsigned char);
+    VIR_SPECIALIZE_TYPE_NAME(short);
+    VIR_SPECIALIZE_TYPE_NAME(unsigned short);
+    VIR_SPECIALIZE_TYPE_NAME(int);
+    VIR_SPECIALIZE_TYPE_NAME(unsigned int);
+    VIR_SPECIALIZE_TYPE_NAME(long);
+    VIR_SPECIALIZE_TYPE_NAME(unsigned long);
+    VIR_SPECIALIZE_TYPE_NAME(long long);
+    VIR_SPECIALIZE_TYPE_NAME(unsigned long long);
+    VIR_SPECIALIZE_TYPE_NAME(float);
+    VIR_SPECIALIZE_TYPE_NAME(double);
+    VIR_SPECIALIZE_TYPE_NAME(long double);
+
+#undef VIR_SPECIALIZE_TYPE_NAME
 
     template <typename T>
       inline constexpr auto class_name
