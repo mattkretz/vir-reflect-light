@@ -56,6 +56,16 @@ struct Point : Base
 Concept that is satisfied if the class `T` definition contains a valid 
 `VIR_MAKE_REFLECTABLE` expansion.
 
+### `vir::refl::type_name<T>`
+
+A `vir::fixed_string` object identifying the name of `T`. This name includes 
+namespaces and template arguments.
+
+### `vir::refl::class_name<T>`
+
+A `vir::fixed_string` object identifying the class name of `T`. This name 
+includes namespaces but no template arguments.
+
 ### `vir::refl::base_type<T>`
 
 Alias for the base type of the type `T`. Does not support multiple inheritance. 
