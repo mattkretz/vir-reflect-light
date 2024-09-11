@@ -139,6 +139,50 @@ namespace vir
 
       friend constexpr auto
       operator<=>(simple_tuple const&, simple_tuple const&) = default;
+
+      constexpr void
+      for_each(auto&& fun)
+      {
+        [&]<size_t... Is>(std::index_sequence<Is...>) {
+          (fun(get(*this, std::integral_constant<size_t, Is>())), ...);
+        }(std::make_index_sequence<sizeof...(Ts)>());
+      }
+
+      constexpr void
+      for_each(auto&& fun) const
+      {
+        [&]<size_t... Is>(std::index_sequence<Is...>) {
+          (fun(get(*this, std::integral_constant<size_t, Is>())), ...);
+        }(std::make_index_sequence<sizeof...(Ts)>());
+      }
+
+      constexpr auto
+      for_all(auto&& fun)
+      {
+        return [&]<size_t... Is>(std::index_sequence<Is...>) {
+          return fun(get(*this, std::integral_constant<size_t, Is>())...);
+        }(std::make_index_sequence<sizeof...(Ts)>());
+      }
+
+      constexpr auto
+      for_all(auto&& fun) const
+      {
+        return [&]<size_t... Is>(std::index_sequence<Is...>) {
+          return fun(get(*this, std::integral_constant<size_t, Is>())...);
+        }(std::make_index_sequence<sizeof...(Ts)>());
+      }
+
+      constexpr auto
+      transform(auto&& fun) const
+      {
+        return [&]<size_t... Is>(std::index_sequence<Is...>) {
+          return simple_tuple<
+                   std::remove_cvref_t<
+                     decltype(fun(get(*this, std::integral_constant<size_t, Is>())))>...> {
+                   fun(get(*this, std::integral_constant<size_t, Is>()))...
+          };
+        }(std::make_index_sequence<sizeof...(Ts)>());
+      }
     };
 
   template <typename... Ts>

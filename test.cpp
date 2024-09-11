@@ -49,6 +49,24 @@ static_assert([] {
     return false;
   if (&t4[i0] != &a)
     return false;
+
+  vir::simple_tuple t3p1 = t3.transform([](auto x) { return x + 1; });
+  if (t3p1 != vir::simple_tuple {2, 3, 4})
+    return false;
+
+  auto sum = t3.for_all([](auto... values) {
+               return (... + values);
+             });
+  if (sum != 6)
+    return false;
+
+  sum = 0;
+  t3.for_all([&](auto... values) {
+    sum = (... + values);
+  });
+  if (sum != 6)
+    return false;
+
   return true;
 }());
 
