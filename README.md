@@ -91,17 +91,24 @@ If no base type exists (is known) an alias for `void`.
 
 - ...
 
-### `vir::refl::data_member_type<T, Idx>`, `data_member_type<T, Name>`
+### `vir::refl::data_member_index<T, Name>`
+
+The index value of the data member with the name `Name` of class `T`.
+The name must match the name returned by `data_member_name`. It can be given as 
+a string literal or `vir::fixed_string_arg`.
+
+### `vir::refl::data_member_type<T, Idx>` / `data_member_type<T, Name>`
 
 Alias for the type of the data member with index `Idx` or name `Name` of class 
-`T`.
+`T`. `data_member_index<T, Name>` is used for mapping a name to an index.
 
-### `vir::refl::data_member<Idx>(obj)`
+### `vir::refl::data_member<Idx>(obj)` / `data_member<Name>(obj)`
 
-Returns a (const) lvalue-reference to the member of `obj` at the given index.
+Returns a (const) lvalue-reference to the member of `obj` at the given index 
+`Idx` / with the given name `Name`. `data_member_index<T, Name>` is used for 
+mapping a name to an index.
 
-### `vir::refl::data_member<Name>(obj)`
+### `vir::refl::all_data_members(obj)`
 
-Returns a (const) lvalue-reference to the member of `obj` with the given name. 
-The name must match the name returned by `data_member_name`. It can be given as 
-string literal or `vir::fixed_string`.
+Returns a `vir::simple_tuple<...>` of references to all the reflectable data 
+members of `obj`.

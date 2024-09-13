@@ -304,6 +304,16 @@ namespace vir
       data_member(reflectable auto&& obj)
       { return data_member<data_member_index<std::remove_cvref_t<decltype(obj)>, Name>>(obj); }
 
+    constexpr decltype(auto)
+    all_data_members(reflectable auto&& obj)
+    {
+      using B = base_type<std::remove_cvref_t<decltype(obj)>>;
+      if constexpr (std::is_void_v<B>)
+        return obj.vir_refl_members_as_tuple();
+      else
+        return all_data_members(static_cast<B&>(obj)) + obj.vir_refl_members_as_tuple();
+    }
+
     namespace detail
     {
       template <size_t N>

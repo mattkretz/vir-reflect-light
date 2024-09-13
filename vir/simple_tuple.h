@@ -8,8 +8,13 @@
 
 namespace vir
 {
+  using std::size_t;
+
   namespace detail
   {
+    template <auto X>
+      inline constexpr std::integral_constant<std::remove_const_t<decltype(X)>, X> ic {};
+
 #define VIR_TUPLE_DATA_COMPARES                                \
   friend constexpr bool                                        \
   operator==(tuple_data const&, tuple_data const&) = default;  \
@@ -95,14 +100,18 @@ namespace vir
   }
 
   template <typename... Ts>
-    class simple_tuple : detail::tuple_data<0, Ts...>
+    class simple_tuple : public detail::tuple_data<0, Ts...>
     {
     public:
+      static constexpr auto size = detail::ic<sizeof...(Ts)>;
+
+      static constexpr auto size_sequence = std::make_index_sequence<sizeof...(Ts)>();
+
       template <typename... Us>
         requires (sizeof...(Ts) == sizeof...(Us)) and (std::convertible_to<Us, Ts> and ...)
         constexpr
         simple_tuple(Us&&... init)
-        : detail::tuple_data<0, Ts...> {{static_cast<Ts>(init)}...}
+        : detail::tuple_data<0, Ts...> {static_cast<Ts>(init)...}
         {}
 
       template <typename Idx>
@@ -132,7 +141,7 @@ namespace vir
       template <size_t Idx>
         requires (Idx < sizeof...(Ts))
         using type_at = decltype(type_at_impl(std::declval<detail::tuple_data<0, Ts...>>(),
-                                              std::integral_constant<size_t, Idx>()));
+                                              detail::ic<Idx>));
 
       friend constexpr bool
       operator==(simple_tuple const&, simple_tuple const&) = default;
@@ -140,48 +149,72 @@ namespace vir
       friend constexpr auto
       operator<=>(simple_tuple const&, simple_tuple const&) = default;
 
+      // concatenation
+      template <typename... Us>
+        friend constexpr simple_tuple<Ts..., Us...>
+        operator+(simple_tuple& lhs, simple_tuple<Us...>& rhs)
+        {
+          return [&]<size_t... Is, size_t... Js>(std::index_sequence<Is...>,
+                                                 std::index_sequence<Js...>) {
+            return simple_tuple<Ts..., Us...> {
+              get(lhs, detail::ic<Is>)..., get(rhs, detail::ic<Js>)...
+            };
+          }(lhs.size_sequence, rhs.size_sequence);
+        }
+
+      template <typename... Us>
+        friend constexpr simple_tuple<Ts..., Us...>
+        operator+(simple_tuple const& lhs, simple_tuple<Us...> const& rhs)
+        {
+          return [&]<size_t... Is, size_t... Js>(std::index_sequence<Is...>,
+                                                 std::index_sequence<Js...>) {
+            return simple_tuple<Ts..., Us...> {
+              get(lhs, detail::ic<Is>)..., get(rhs, detail::ic<Js>)...
+            };
+          }(lhs.size_sequence, rhs.size_sequence);
+        }
+
+      // algorithms
       constexpr void
       for_each(auto&& fun)
       {
         [&]<size_t... Is>(std::index_sequence<Is...>) {
-          (fun(get(*this, std::integral_constant<size_t, Is>())), ...);
-        }(std::make_index_sequence<sizeof...(Ts)>());
+          (fun(get(*this, detail::ic<Is>)), ...);
+        }(size_sequence);
       }
 
       constexpr void
       for_each(auto&& fun) const
       {
         [&]<size_t... Is>(std::index_sequence<Is...>) {
-          (fun(get(*this, std::integral_constant<size_t, Is>())), ...);
-        }(std::make_index_sequence<sizeof...(Ts)>());
+          (fun(get(*this, detail::ic<Is>)), ...);
+        }(size_sequence);
       }
 
       constexpr auto
       for_all(auto&& fun)
       {
         return [&]<size_t... Is>(std::index_sequence<Is...>) {
-          return fun(get(*this, std::integral_constant<size_t, Is>())...);
-        }(std::make_index_sequence<sizeof...(Ts)>());
+          return fun(get(*this, detail::ic<Is>)...);
+        }(size_sequence);
       }
 
       constexpr auto
       for_all(auto&& fun) const
       {
         return [&]<size_t... Is>(std::index_sequence<Is...>) {
-          return fun(get(*this, std::integral_constant<size_t, Is>())...);
-        }(std::make_index_sequence<sizeof...(Ts)>());
+          return fun(get(*this, detail::ic<Is>)...);
+        }(size_sequence);
       }
 
       constexpr auto
       transform(auto&& fun) const
       {
         return [&]<size_t... Is>(std::index_sequence<Is...>) {
-          return simple_tuple<
-                   std::remove_cvref_t<
-                     decltype(fun(get(*this, std::integral_constant<size_t, Is>())))>...> {
-                   fun(get(*this, std::integral_constant<size_t, Is>()))...
+          return simple_tuple<std::remove_cvref_t<decltype(fun(get(*this, detail::ic<Is>)))>...> {
+            fun(get(*this, detail::ic<Is>))...
           };
-        }(std::make_index_sequence<sizeof...(Ts)>());
+        }(size_sequence);
       }
     };
 

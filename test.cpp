@@ -11,8 +11,8 @@
 [[maybe_unused]] constexpr auto i1 = vir::refl::detail::ic<1>;
 [[maybe_unused]] constexpr auto i2 = vir::refl::detail::ic<2>;
 [[maybe_unused]] constexpr auto i3 = vir::refl::detail::ic<3>;
-/*
 [[maybe_unused]] constexpr auto i4 = vir::refl::detail::ic<4>;
+/*
 [[maybe_unused]] constexpr auto i5 = vir::refl::detail::ic<5>;
 [[maybe_unused]] constexpr auto i6 = vir::refl::detail::ic<6>;
 [[maybe_unused]] constexpr auto i7 = vir::refl::detail::ic<7>;
@@ -65,6 +65,17 @@ static_assert([] {
     sum = (... + values);
   });
   if (sum != 6)
+    return false;
+
+  auto t6 = t3 + t3;
+  auto t9 = t3 + t6;
+  if (t9[i0] != t9[i3])
+    return false;
+  if (t9 != t6 + t3)
+    return false;
+
+  auto t7 = t4 + vir::tie(a, t6, c);
+  if (&t7[i0] != &t7[i4])
     return false;
 
   return true;
@@ -252,6 +263,18 @@ static_assert([] {
   vir::refl::data_member<"in">(t) *= -1;
   if (t.in != -1.1f)
     return false;
+
+  if (&vir::refl::all_data_members(t)[i0] != &t.a)
+    return false;
+  if (&vir::refl::all_data_members(t)[i1] != &t.b)
+    return false;
+  if (&vir::refl::all_data_members(t)[i2] != &t.foo)
+    return false;
+  if (&vir::refl::all_data_members(t)[i3] != &t.in)
+    return false;
+  if (&vir::refl::all_data_members(t)[i4] != &t.out)
+    return false;
+
   return true;
 }());
 
