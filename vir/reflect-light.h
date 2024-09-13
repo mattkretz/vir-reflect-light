@@ -56,14 +56,15 @@ namespace vir::refl::detail
 #define VIR_MAKE_REFLECTABLE(T, ...)                                                               \
 public:                                                                                            \
   friend void                                                                                      \
-  vir_refl_determine_base_type(...);                                                               \
+  vir_refl_determine_base_type(T const&, ...)                                                      \
+  {}                                                                                               \
                                                                                                    \
   template <std::derived_from<T> U>                                                                \
     requires (not std::is_same_v<U, T>)                                                            \
       and std::is_void_v<decltype(vir_refl_determine_base_type(                                    \
-                                    std::declval<vir::refl::detail::make_dependent_t<U, T>>()))>   \
+                                    std::declval<vir::refl::detail::make_dependent_t<U, T>>(), 0))>\
     friend T                                                                                       \
-    vir_refl_determine_base_type(U const&) { return std::declval<T>(); }                           \
+    vir_refl_determine_base_type(U const&, int) { return std::declval<T>(); }                      \
                                                                                                    \
   template <std::derived_from<T> U, typename Not>                                                  \
     requires (not std::is_same_v<U, T>) and (not std::derived_from<Not, T>)                        \
@@ -100,8 +101,6 @@ namespace vir
       template <typename T>
         concept class_type = std::is_class_v<T>;
 
-      //void vir_refl_determine_base_type(...);
-
       struct None {};
 
       template <typename T, typename Excluding>
@@ -118,7 +117,7 @@ namespace vir
         {
           using type
             = typename base_type_impl<T, decltype(vir_refl_determine_base_type(
-                                                    std::declval<T>()))>::type;
+                                                    std::declval<T>(), 0))>::type;
         };
 
       // if Last is void => there's no base type (void)

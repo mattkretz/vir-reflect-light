@@ -329,6 +329,12 @@ namespace ns
   };
 }
 
+struct Type3 : ns::Type<Type3>
+{
+  float x, y, z;
+  VIR_MAKE_REFLECTABLE(Type3, x, y, z);
+};
+
 static_assert(vir::refl::reflectable<ns::Type<int>>);
 static_assert(std::same_as<vir::refl::base_type<ns::Type<int>>, void>);
 static_assert(vir::refl::data_member_count<ns::Type<int>> == 1);
@@ -339,6 +345,11 @@ static_assert(vir::refl::reflectable<ns::Type2>);
 static_assert(std::same_as<vir::refl::base_type<ns::Type2>, ns::Type<ns::Type2>>);
 static_assert(vir::refl::data_member_count<ns::Type2> == 1);
 static_assert(vir::refl::class_name<ns::Type2> == "ns::Type2");
+
+static_assert(vir::refl::reflectable<Type3>);
+static_assert(vir::refl::class_name<Type3> == "Type3");
+static_assert(std::same_as<vir::refl::base_type<Type3>, ns::Type<Type3>>);
+static_assert(vir::refl::data_member_count<Type3> == 4);
 
 const char*
 string_test()
