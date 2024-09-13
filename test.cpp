@@ -310,6 +310,10 @@ static_assert(vir::refl::find_data_members<AndAnother, name_is_out> == std::arra
 static_assert(vir::refl::find_data_members_by_type<AndAnother, std::is_floating_point>
                 == std::array<size_t, 2>{3, 4});
 
+static_assert(std::same_as<vir::refl::data_member_types<AndAnother, {0, 1}>, vir::simple_tuple<int, int>>);
+static_assert(std::same_as<vir::refl::data_member_types<AndAnother, {2, 5, 4}>,
+                           vir::simple_tuple<int, char, double>>);
+
 namespace ns
 {
   template <typename T>

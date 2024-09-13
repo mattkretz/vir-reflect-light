@@ -162,3 +162,8 @@ using sizeof4 = std::bool_constant<sizeof(T) == 4>;
 constexpr std::array idxs = vir::refl::find_data_members_by_type<A, sizeof4>;
 // => idxs == {0, 4}
 ```
+
+### `vir::refl::data_member_types<T, IndexArray>`
+
+Alias for a `vir::simple_tuple<...>` type where the tuple types are equal to 
+the data member types of `T` at the indexes given by `IndexArray`.
