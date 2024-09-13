@@ -295,6 +295,19 @@ struct AndAnother : Further
 static_assert(vir::refl::reflectable<AndAnother>);
 static_assert(std::same_as<vir::refl::base_type<AndAnother>, Further>);
 
+template <typename T, size_t Idx>
+using only_floats = std::is_same<vir::refl::data_member_type<T, Idx>, float>;
+
+template <typename T, size_t Idx>
+using only_ints = std::is_same<vir::refl::data_member_type<T, Idx>, int>;
+
+template <typename T, size_t Idx>
+using name_is_out = std::bool_constant<vir::refl::data_member_name<T, Idx> == "out">;
+
+static_assert(vir::refl::find_data_members<AndAnother, only_floats> == std::array<size_t, 1>{3});
+static_assert(vir::refl::find_data_members<AndAnother, only_ints> == std::array<size_t, 3>{0, 1, 2});
+static_assert(vir::refl::find_data_members<AndAnother, name_is_out> == std::array<size_t, 1>{4});
+
 namespace ns
 {
   template <typename T>

@@ -9,6 +9,8 @@
 #include "fixed_string.h"
 #include "simple_tuple.h"
 
+#include <array>
+
 // recursive macro implementation inspired by https://www.scs.stanford.edu/~dm/blog/va-opt.html
 
 #define VIR_REFLECT_LIGHT_PARENS ()
@@ -313,6 +315,18 @@ namespace vir
       else
         return all_data_members(static_cast<B&>(obj)) + obj.vir_refl_members_as_tuple();
     }
+
+    template <reflectable T, template <typename, size_t> class Pred>
+      constexpr std::array find_data_members = []<size_t... Is>(std::index_sequence<Is...>) {
+        constexpr size_t matches = (Pred<T, Is>::value + ...);
+        constexpr std::array results = {(Pred<T, Is>::value ? Is : -1)...};
+        std::array<size_t, matches> r = {};
+        size_t i = 0;
+        for (size_t idx : results)
+          if (idx != size_t(-1))
+            r[i++] = idx;
+        return r;
+      }(std::make_index_sequence<data_member_count<T>>());
 
     namespace detail
     {

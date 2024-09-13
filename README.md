@@ -112,3 +112,38 @@ mapping a name to an index.
 
 Returns a `vir::simple_tuple<...>` of references to all the reflectable data 
 members of `obj`.
+
+### `vir::refl::find_data_members<T, Predicate>`
+
+A `constexpr std::array<size_t, N>` identifying all data member indices that 
+match `Predicate`. `Predicate` needs to be a template with two template 
+arguments:
+
+1. A `typename` that simply passes the `T` argument from `find_data_members` 
+   on.
+2. A `size_t` index identifying the data member to consider.
+
+Example:
+
+```c++
+struct A {
+  int foo;
+  double x, y, z;
+  float angle;
+};
+
+template <typename T, size_t Idx>
+using sizeof4
+  = std::bool_constant<sizeof(vir::refl::data_member_type<T, Idx>) == 4>;
+
+constexpr std::array idxs = vir::refl::find_data_members<A, sizeof4>;
+// => idxs == {0, 4}
+
+template <typename T, size_t Idx>
+using int_or_angle
+  = std::disjunction<std::bool_constant<vir::refl::data_member_name<T, Idx> == "angle">,
+                     std::same_as<vir::refl::data_member_type<T, Idx>, int>>;
+
+constexpr std::array idx2 = vir::refl::find_data_members<A, int_or_angle>;
+// => idx2 == {0, 4}
+```
