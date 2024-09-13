@@ -22,7 +22,33 @@ namespace vir
     // to guard against dangling pointers from fixed_string::c_str()/data()/view().
     template <fixed_string_arg X>
       inline constexpr auto string_storage = X;
+
+    template <typename T>
+      struct possible_fixed_string_tmpl_args;
+
+    template <template <typename, size_t> class Str, size_t N>
+      requires (sizeof(Str<char, N>) == N + 1)
+      struct possible_fixed_string_tmpl_args<Str<char, N>>
+      : std::integral_constant<size_t, N>
+      {};
+
+    template <template <size_t> class Str, size_t N>
+      requires (sizeof(Str<N>) == N + 1)
+      struct possible_fixed_string_tmpl_args<Str<N>>
+      : std::integral_constant<size_t, N>
+      {};
+
+    template <template <size_t, typename> class Str, size_t N>
+      requires (sizeof(Str<N, char>) == N + 1)
+      struct possible_fixed_string_tmpl_args<Str<N, char>>
+      : std::integral_constant<size_t, N>
+      {};
   }
+
+  template <typename T>
+    concept other_fixed_string_arg
+      = std::convertible_to<T, std::string_view>
+          and requires { detail::possible_fixed_string_tmpl_args<T>::value; };
 
   template <size_t N>
     class fixed_string_arg
@@ -56,6 +82,12 @@ namespace vir
       consteval
       fixed_string_arg(const char *txt) noexcept
       : fixed_string_arg(std::make_index_sequence<N>(), txt)
+      {}
+
+      consteval
+      fixed_string_arg(other_fixed_string_arg auto other) noexcept
+      : fixed_string_arg(std::make_index_sequence<N>(),
+                         static_cast<std::string_view>(other).data())
       {}
 
       constexpr
@@ -206,6 +238,9 @@ namespace vir
 
   template <size_t N>
     fixed_string_arg(const char (&str)[N]) -> fixed_string_arg<N - 1>;
+
+  template <other_fixed_string_arg T>
+    fixed_string_arg(T) -> fixed_string_arg<detail::possible_fixed_string_tmpl_args<T>::value>;
 
   template <fixed_string_arg S>
     class fixed_string
