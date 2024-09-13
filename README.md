@@ -147,3 +147,18 @@ using int_or_angle
 constexpr std::array idx2 = vir::refl::find_data_members<A, int_or_angle>;
 // => idx2 == {0, 4}
 ```
+
+### `vir::refl::find_data_members_by_type<T, Predicate>`
+
+Shorthand for the above so that standard type traits can be used as 
+`Predicate`. `Predicate<data_member_type<T, Idx>>` determines whether the index 
+`Idx` is returned from the array. The above `sizeof4` predicate can thus be 
+written as:
+
+```c++
+template <typename T>
+using sizeof4 = std::bool_constant<sizeof(T) == 4>;
+
+constexpr std::array idxs = vir::refl::find_data_members_by_type<A, sizeof4>;
+// => idxs == {0, 4}
+```

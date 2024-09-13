@@ -307,6 +307,8 @@ using name_is_out = std::bool_constant<vir::refl::data_member_name<T, Idx> == "o
 static_assert(vir::refl::find_data_members<AndAnother, only_floats> == std::array<size_t, 1>{3});
 static_assert(vir::refl::find_data_members<AndAnother, only_ints> == std::array<size_t, 3>{0, 1, 2});
 static_assert(vir::refl::find_data_members<AndAnother, name_is_out> == std::array<size_t, 1>{4});
+static_assert(vir::refl::find_data_members_by_type<AndAnother, std::is_floating_point>
+                == std::array<size_t, 2>{3, 4});
 
 namespace ns
 {
