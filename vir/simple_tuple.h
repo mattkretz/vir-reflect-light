@@ -116,12 +116,15 @@ namespace vir
 
       static constexpr auto size_sequence = std::make_index_sequence<sizeof...(Ts)>();
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmissing-braces"
       template <typename... Us>
         requires (sizeof...(Ts) == sizeof...(Us)) and (std::convertible_to<Us, Ts> and ...)
         constexpr
         simple_tuple(Us&&... init)
         : detail::tuple_data<0, Ts...> {static_cast<Ts>(init)...}
         {}
+#pragma GCC diagnostic pop
 
       template <typename Idx>
         constexpr decltype(auto)

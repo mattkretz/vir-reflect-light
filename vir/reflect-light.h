@@ -392,7 +392,7 @@ namespace vir
         return r;
       }(std::make_index_sequence<data_member_count<T>>());
 
-    template <reflectable T, std::array Idxs = {}>
+    template <reflectable T, std::array Idxs = std::array<size_t, 0> {}>
       using data_member_types = decltype([]<size_t... Is>(std::index_sequence<Is...>)
                                            -> vir::simple_tuple<data_member_type<T, Idxs[Is]>...>
       { return {}; }(std::make_index_sequence<Idxs.size()>()));
