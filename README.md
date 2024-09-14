@@ -1,7 +1,7 @@
 # vir-reflect-light
 
 [![CI](https://github.com/mattkretz/vir-reflect-light/actions/workflows/CI.yml/badge.svg)](https://github.com/mattkretz/vir-reflect-light/actions/workflows/CI.yml)
-[![fair-software.eu](https://img.shields.io/badge/fair--software.eu-%E2%97%8F%20%20%E2%97%8F%20%20%E2%97%8B%20%20%E2%97%8B%20%20%E2%97%8B-orange)](https://fair-software.eu)
+[![fair-software.eu](https://img.shields.io/badge/fair--software.eu-%E2%97%8F%20%20%E2%97%8F%20%20%E2%97%8B%20%20%E2%97%8F%20%20%E2%97%8B-orange)](https://fair-software.eu)
 
 This package tries to be as light on compile-time as possible while enabling 
 the following features:
