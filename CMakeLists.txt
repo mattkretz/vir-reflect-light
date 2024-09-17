@@ -1,3 +1,7 @@
+# SPDX-License-Identifier: LGPL-3.0-or-later
+# Copyright © 2024      GSI Helmholtzzentrum fuer Schwerionenforschung GmbH
+#                       Matthias Kretz <m.kretz@gsi.de>
+
 cmake_minimum_required(VERSION 3.5)
 project(vir-reflect-light
   VERSION 0.0.100

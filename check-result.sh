@@ -1,4 +1,7 @@
 #!/bin/sh
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright © 2024      GSI Helmholtzzentrum fuer Schwerionenforschung GmbH
+#                       Matthias Kretz <m.kretz@gsi.de>
 symbols="$(nm -SC test.o|grep -v ' U __gxx_personality_v0')"
 symbol_count=$(echo "$symbols"|wc -l)
 string_count=$(echo "$symbols"|grep -c ' [Vu] .*string_storage')

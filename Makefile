@@ -1,3 +1,7 @@
+# SPDX-License-Identifier: LGPL-3.0-or-later
+# Copyright © 2024      GSI Helmholtzzentrum fuer Schwerionenforschung GmbH
+#                       Matthias Kretz <m.kretz@gsi.de>
+
 CXXFLAGS=-O2 -std=c++20 -g0
 CXXFLAGS+=-Wall -Wextra -Wpedantic
 CXXFLAGS+=-I$(PWD)
