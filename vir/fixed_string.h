@@ -51,6 +51,12 @@ namespace vir
           and requires { detail::possible_fixed_string_tmpl_args<T>::value; };
 
   template <size_t N>
+    class fixed_string_arg;
+
+  template <fixed_string_arg S, typename T = std::remove_const_t<decltype(S)>>
+    class fixed_string;
+
+  template <size_t N>
     class fixed_string_arg
     {
     public:
@@ -68,23 +74,23 @@ namespace vir
       // [fixed.string.cons], construction and assignment
       template <std::convertible_to<char>... Chars>
         requires(sizeof...(Chars) == N) and (... and not std::is_pointer_v<Chars>)
-        consteval explicit
+        constexpr explicit
         fixed_string_arg(Chars... chars) noexcept
         : data_{static_cast<char>(chars)...}
         {}
 
       template <size_t... Is>
-        consteval
+        constexpr
         fixed_string_arg(std::index_sequence<Is...>, const char *txt) noexcept
         : data_{txt[Is]...}
         { static_assert(sizeof...(Is) == N); }
 
-      consteval
+      constexpr
       fixed_string_arg(const char *txt) noexcept
       : fixed_string_arg(std::make_index_sequence<N>(), txt)
       {}
 
-      consteval
+      constexpr
       fixed_string_arg(other_fixed_string_arg auto other) noexcept
       : fixed_string_arg(std::make_index_sequence<N>(),
                          static_cast<std::string_view>(other).data())
@@ -161,7 +167,7 @@ namespace vir
       }
 
       template <size_t N2>
-        consteval friend fixed_string_arg<N + N2 - 1>
+        constexpr friend fixed_string_arg<N + N2 - 1>
         operator+(const fixed_string_arg& lhs, const char (&rhs)[N2]) noexcept
         {
           return [&]<size_t... Is>(std::index_sequence<Is...>) {
@@ -170,7 +176,7 @@ namespace vir
         }
 
       template <size_t N1>
-        consteval friend fixed_string_arg<N1 + N - 1>
+        constexpr friend fixed_string_arg<N1 + N - 1>
         operator+(const char (&lhs)[N1], const fixed_string_arg& rhs) noexcept
         {
           return [&]<size_t... Is>(std::index_sequence<Is...>) {
@@ -232,7 +238,7 @@ namespace vir
         { return lhs.view() <=> std::string_view(rhs, rhs + N2 - 1); }
     };
 
-  // [fixed.string.deduct], deduction guides
+  // fixed_string deduction guides
   template <std::convertible_to<char>... Rest>
     fixed_string_arg(char, Rest...) -> fixed_string_arg<1 + sizeof...(Rest)>;
 
@@ -242,15 +248,19 @@ namespace vir
   template <other_fixed_string_arg T>
     fixed_string_arg(T) -> fixed_string_arg<detail::possible_fixed_string_tmpl_args<T>::value>;
 
-  template <fixed_string_arg S>
+  template <auto S>
+    fixed_string_arg(fixed_string<S>) -> fixed_string_arg<S.size>;
+
+  // The T parameter exists solely for enabling lookup of fixed_string_arg operators (ADL).
+  template <fixed_string_arg S, typename T>
     class fixed_string
     {
     public:
       static constexpr auto value = S;
 
       constexpr
-      operator decltype(S)() const
-      { return S; }
+      operator T() const
+      { return value; }
 
       // types
       using value_type = char;

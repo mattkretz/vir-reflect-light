@@ -117,6 +117,14 @@ static_assert("txet" != vir::fixed_string<"text">());
 static_assert("txet" >  vir::fixed_string<"text">());
 static_assert("txet" >= vir::fixed_string<"text">());
 
+constexpr auto
+f()
+{
+  vir::fixed_string<"Hello World!"> as_type;
+  constexpr auto and_now = "4× " + as_type + " How do you do?";
+  return vir::fixed_string<and_now>();
+}
+
 // ==============================================
 // =================  vir::refl =================
 // ==============================================
