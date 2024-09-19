@@ -81,6 +81,27 @@ static_assert([] {
   return true;
 }());
 
+namespace simple_tuple_test
+{
+  struct MoveOnly
+  {
+    MoveOnly() = default;
+    MoveOnly(const MoveOnly&) = delete;
+    MoveOnly(MoveOnly&&) = default;
+  };
+
+  constexpr auto
+  f()
+  {
+    vir::simple_tuple<MoveOnly, MoveOnly> x {};
+    vir::simple_tuple<MoveOnly, MoveOnly> y = std::move(x);
+    vir::simple_tuple<MoveOnly, MoveOnly> z
+      = std::move(y).for_all([](auto&&... args) {
+          return vir::simple_tuple(std::move(args)...);
+        });
+    return z;
+  }
+}
 // ==============================================
 // ================ fixed_string ================
 // ==============================================

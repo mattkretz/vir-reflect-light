@@ -119,12 +119,15 @@ namespace vir
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wmissing-braces"
       template <typename... Us>
-        requires (sizeof...(Ts) == sizeof...(Us)) and (std::convertible_to<Us, Ts> and ...)
+        requires (sizeof...(Ts) == sizeof...(Us)) and (std::convertible_to<Us&&, Ts> and ...)
         constexpr
         simple_tuple(Us&&... init)
-        : detail::tuple_data<0, Ts...> {static_cast<Ts>(init)...}
+        : detail::tuple_data<0, Ts...> {static_cast<Us&&>(init)...}
         {}
 #pragma GCC diagnostic pop
+
+      constexpr
+      simple_tuple() = default;
 
       template <typename Idx>
         constexpr decltype(auto)
@@ -204,7 +207,7 @@ namespace vir
       }
 
       constexpr auto
-      for_all(auto&& fun)
+      for_all(auto&& fun) &
       {
         return [&]<size_t... Is>(std::index_sequence<Is...>) {
           return fun(get_impl_(*this, detail::ic<Is>)...);
@@ -212,10 +215,18 @@ namespace vir
       }
 
       constexpr auto
-      for_all(auto&& fun) const
+      for_all(auto&& fun) const&
       {
         return [&]<size_t... Is>(std::index_sequence<Is...>) {
           return fun(get_impl_(*this, detail::ic<Is>)...);
+        }(size_sequence);
+      }
+
+      constexpr auto
+      for_all(auto&& fun) &&
+      {
+        return [&]<size_t... Is>(std::index_sequence<Is...>) {
+          return fun(get_impl_(std::move(*this), detail::ic<Is>)...);
         }(size_sequence);
       }
 
