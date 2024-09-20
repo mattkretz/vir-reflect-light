@@ -363,6 +363,54 @@ namespace vir
         { return S <=> rhs; }
     };
 
+  namespace detail
+  {
+    template <std::integral auto N>
+      consteval auto
+      fixed_string_arg_from_number()
+      {
+        constexpr int buf_len = [] {
+          auto x = N;
+          int len = 0;
+          if (x < 0)
+              ++len;
+          while (x != 0)
+            {
+              ++len;
+              x /= 10;
+            }
+          return len;
+        }();
+        char buffer[buf_len + 1] = {};
+        auto x = N;
+        constexpr bool negative = N < 0;
+        int i = buf_len;
+        while (x != 0)
+          {
+            buffer[--i] = '0' + (x < 0 ? -1 : 1) * (x % 10);
+            x /= 10;
+          }
+        if (negative)
+          buffer[--i] = '-';
+        if (i != 0)
+          throw i;
+        return fixed_string_arg<buf_len>(buffer);
+      }
+  }
+
+  template <std::integral auto N>
+    inline constexpr auto fixed_string_arg_from_number = detail::fixed_string_arg_from_number<N>();
+
+  template <std::integral auto N>
+    requires (N >= 0 and N < 10)
+    inline constexpr auto fixed_string_arg_from_number<N> = fixed_string_arg<1>('0' + N);
+
+  template <std::integral auto N>
+    using fixed_string_from_number = fixed_string<fixed_string_arg_from_number<N>>;
+
+  template <std::integral auto N>
+    inline constexpr fixed_string_from_number<N> fixed_string_from_number_v {};
+
   namespace literals
   {
     template <fixed_string_arg S>
