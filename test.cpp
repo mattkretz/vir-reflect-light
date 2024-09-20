@@ -35,11 +35,23 @@ static_assert(vir::simple_tuple {1, 2}[std::integral_constant<int, 0>()] == 1);
 static_assert(std::same_as<decltype(vir::simple_tuple {1, 2}[i0]), int&&>);
 static_assert(vir::simple_tuple {} == vir::simple_tuple {});
 static_assert(vir::simple_tuple {} <= vir::simple_tuple {});
+static_assert(std::tuple_size_v<vir::simple_tuple<int, float, char>> == 3);
+static_assert(std::same_as<std::tuple_element_t<0, vir::simple_tuple<int, float, char>>, int>);
+static_assert(std::same_as<std::tuple_element_t<1, vir::simple_tuple<int, float, char>>, float>);
+static_assert(std::same_as<std::tuple_element_t<2, vir::simple_tuple<int, float, char>>, char>);
 
 static_assert([] {
   vir::simple_tuple t3{1, 2, 3};
   static_assert(std::same_as<decltype(t3[i0]), int&>);
   static_assert(std::same_as<decltype(std::as_const(t3)[i0]), int const&>);
+  {
+    auto [x1, x2, x3] = t3;
+    if (not (x1 == 1 and x2 == 2 and x3 == 3))
+      return false;
+  }
+  static_assert(&get<0>(t3) == &t3[i0]);
+  static_assert(&get<1>(t3) == &t3[i1]);
+  static_assert(&get<2>(t3) == &t3[i2]);
   int a = 0, b = 1, c = 2, d = 3;
   auto t4 = vir::tie(a, b, c, d);
   if (not(t4[i0] == 0 and t4[i1] == 1) and t4[i2] == 2 and t4[i3] == 3)

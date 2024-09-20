@@ -25,22 +25,22 @@ namespace vir
 #define VIR_SIMPLE_TUPLE_DATA_IMPL(i)                          \
   T##i value##i;                                               \
                                                                \
-  template <typename Idx>                                      \
-    requires (Idx::value == Off + i)                           \
+  template <size_t Idx>                                        \
+    requires (Idx == Off + i)                                  \
     friend constexpr T##i&&                                    \
-    get_impl_(tuple_data&& obj, Idx) noexcept                  \
+    get(tuple_data&& obj) noexcept                             \
     { return static_cast<T##i&&>(obj.value##i); }              \
                                                                \
-  template <typename Idx>                                      \
-    requires (Idx::value == Off + i)                           \
+  template <size_t Idx>                                        \
+    requires (Idx == Off + i)                                  \
     friend constexpr T##i&                                     \
-    get_impl_(tuple_data& obj, Idx) noexcept                   \
+    get(tuple_data& obj) noexcept                              \
     { return obj.value##i; }                                   \
                                                                \
-  template <typename Idx>                                      \
-    requires (Idx::value == Off + i)                           \
+  template <size_t Idx>                                        \
+    requires (Idx == Off + i)                                  \
     friend constexpr T##i const&                               \
-    get_impl_(tuple_data const& obj, Idx) noexcept             \
+    get(tuple_data const& obj) noexcept                        \
     { return obj.value##i; }                                   \
                                                                \
   template <typename Idx>                                      \
@@ -134,7 +134,7 @@ namespace vir
         operator[](Idx i) && noexcept
         {
           static_assert(Idx::value >= 0 and Idx::value < sizeof...(Ts));
-          return get_impl_(static_cast<simple_tuple&&>(*this), i);
+          return get<i>(static_cast<simple_tuple&&>(*this));
         }
 
       template <typename Idx>
@@ -142,7 +142,7 @@ namespace vir
         operator[](Idx i) & noexcept
         {
           static_assert(Idx::value >= 0 and Idx::value < sizeof...(Ts));
-          return get_impl_(*this, i);
+          return get<i>(*this);
         }
 
       template <typename Idx>
@@ -150,7 +150,7 @@ namespace vir
         operator[](Idx i) const& noexcept
         {
           static_assert(Idx::value >= 0 and Idx::value < sizeof...(Ts));
-          return get_impl_(*this, i);
+          return get<i>(*this);
         }
 
       template <size_t Idx>
@@ -172,7 +172,7 @@ namespace vir
           return [&]<size_t... Is, size_t... Js>(std::index_sequence<Is...>,
                                                  std::index_sequence<Js...>) {
             return simple_tuple<Ts..., Us...> {
-              get_impl_(lhs, detail::ic<Is>)..., get_impl_(rhs, detail::ic<Js>)...
+              get<Is>(lhs)..., get<Js>(rhs)...
             };
           }(lhs.size_sequence, rhs.size_sequence);
         }
@@ -184,7 +184,7 @@ namespace vir
           return [&]<size_t... Is, size_t... Js>(std::index_sequence<Is...>,
                                                  std::index_sequence<Js...>) {
             return simple_tuple<Ts..., Us...> {
-              get_impl_(lhs, detail::ic<Is>)..., get_impl_(rhs, detail::ic<Js>)...
+              get<Is>(lhs)..., get<Js>(rhs)...
             };
           }(lhs.size_sequence, rhs.size_sequence);
         }
@@ -194,7 +194,7 @@ namespace vir
       for_each(auto&& fun)
       {
         [&]<size_t... Is>(std::index_sequence<Is...>) {
-          (fun(get_impl_(*this, detail::ic<Is>)), ...);
+          (fun(get<Is>(*this)), ...);
         }(size_sequence);
       }
 
@@ -202,7 +202,7 @@ namespace vir
       for_each(auto&& fun) const
       {
         [&]<size_t... Is>(std::index_sequence<Is...>) {
-          (fun(get_impl_(*this, detail::ic<Is>)), ...);
+          (fun(get<Is>(*this)), ...);
         }(size_sequence);
       }
 
@@ -210,7 +210,7 @@ namespace vir
       for_all(auto&& fun) &
       {
         return [&]<size_t... Is>(std::index_sequence<Is...>) {
-          return fun(get_impl_(*this, detail::ic<Is>)...);
+          return fun(get<Is>(*this)...);
         }(size_sequence);
       }
 
@@ -218,7 +218,7 @@ namespace vir
       for_all(auto&& fun) const&
       {
         return [&]<size_t... Is>(std::index_sequence<Is...>) {
-          return fun(get_impl_(*this, detail::ic<Is>)...);
+          return fun(get<Is>(*this)...);
         }(size_sequence);
       }
 
@@ -226,7 +226,7 @@ namespace vir
       for_all(auto&& fun) &&
       {
         return [&]<size_t... Is>(std::index_sequence<Is...>) {
-          return fun(get_impl_(std::move(*this), detail::ic<Is>)...);
+          return fun(get<Is>(std::move(*this))...);
         }(size_sequence);
       }
 
@@ -234,9 +234,8 @@ namespace vir
       transform(auto&& fun) const
       {
         return [&]<size_t... Is>(std::index_sequence<Is...>) {
-          return simple_tuple<std::remove_cvref_t<
-                                decltype(fun(get_impl_(*this, detail::ic<Is>)))>...> {
-            fun(get_impl_(*this, detail::ic<Is>))...
+          return simple_tuple<std::remove_cvref_t<decltype(fun(get<Is>(*this)))>...> {
+            fun(get<Is>(*this))...
           };
         }(size_sequence);
       }
@@ -250,4 +249,14 @@ namespace vir
     tie(Ts&&... refs) noexcept
     { return simple_tuple<Ts...> {static_cast<Ts&&>(refs)...}; }
 }
+
+template <typename... Ts>
+  struct std::tuple_size<vir::simple_tuple<Ts...>>
+    : std::integral_constant<std::size_t, sizeof...(Ts)>
+  {};
+
+template <std::size_t I, typename... Ts>
+  struct std::tuple_element<I, vir::simple_tuple<Ts...>>
+  { using type = typename vir::simple_tuple<Ts...>::template type_at<I>; };
+
 #endif  // VIR_SIMPLE_TUPLE_H_
