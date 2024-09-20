@@ -51,12 +51,6 @@ namespace vir
           and requires { detail::possible_fixed_string_tmpl_args<T>::value; };
 
   template <size_t N>
-    class fixed_string_arg;
-
-  template <fixed_string_arg S, typename T = std::remove_const_t<decltype(S)>>
-    class fixed_string;
-
-  template <size_t N>
     class fixed_string_arg
     {
     public:
@@ -238,7 +232,10 @@ namespace vir
         { return lhs.view() <=> std::string_view(rhs, rhs + N2 - 1); }
     };
 
-  // fixed_string deduction guides
+  template <fixed_string_arg S, typename T = std::remove_const_t<decltype(S)>>
+    class fixed_string;
+
+  // fixed_string_arg deduction guides
   template <std::convertible_to<char>... Rest>
     fixed_string_arg(char, Rest...) -> fixed_string_arg<1 + sizeof...(Rest)>;
 
