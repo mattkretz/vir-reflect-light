@@ -3,7 +3,7 @@
 [![CI](https://github.com/mattkretz/vir-reflect-light/actions/workflows/CI.yml/badge.svg)](https://github.com/mattkretz/vir-reflect-light/actions/workflows/CI.yml)
 [![DOI](https://zenodo.org/badge/853507449.svg)](https://zenodo.org/doi/10.5281/zenodo.13762631)
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/9447/badge)](https://www.bestpractices.dev/projects/9447)
-[![fair-software.eu](https://img.shields.io/badge/fair--software.eu-%E2%97%8F%20%20%E2%97%8F%20%20%E2%97%8B%20%20%E2%97%8F%20%20%E2%97%8B-orange)](https://fair-software.eu)
+[![fair-software.eu](https://img.shields.io/badge/fair--software.eu-%E2%97%8F%20%20%E2%97%8F%20%20%E2%97%8B%20%20%E2%97%8F%20%20%E2%97%8F-yellow)](https://fair-software.eu)
 
 This package tries to be as light on compile-time as possible while enabling 
 the following features:
