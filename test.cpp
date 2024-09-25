@@ -6,6 +6,8 @@
 #include <vir/reflect-light.h>
 #include <vir/simple_tuple.h>
 #include <utility>
+#include <vector>
+#include <complex>
 
 [[maybe_unused]] constexpr auto i0 = vir::refl::detail::ic<0>;
 [[maybe_unused]] constexpr auto i1 = vir::refl::detail::ic<1>;
@@ -173,6 +175,10 @@ f()
 
 static_assert(vir::refl::type_name<int> == vir::fixed_string<"int">());
 static_assert(vir::refl::type_name<float> == "float");
+static_assert(vir::refl::type_name<std::string> == "std::string");
+static_assert(vir::refl::type_name<std::array<int, 4>> == "std::array<int, 4>");
+static_assert(vir::refl::type_name<std::vector<int>> == "std::vector<int>");
+static_assert(vir::refl::type_name<std::complex<float>> == "std::complex<float>");
 
 namespace ns0
 {

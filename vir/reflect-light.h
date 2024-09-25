@@ -10,6 +10,7 @@
 #include "simple_tuple.h"
 
 #include <array>
+#include <string>
 
 // recursive macro implementation inspired by https://www.scs.stanford.edu/~dm/blog/va-opt.html
 
@@ -240,6 +241,7 @@ namespace vir
     VIR_SPECIALIZE_TYPE_NAME(float);
     VIR_SPECIALIZE_TYPE_NAME(double);
     VIR_SPECIALIZE_TYPE_NAME(long double);
+    VIR_SPECIALIZE_TYPE_NAME(std::string);
 
 #undef VIR_SPECIALIZE_TYPE_NAME
 
