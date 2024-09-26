@@ -198,7 +198,7 @@ namespace ns0
   { A, B, C };
 
   enum class EnumClass
-  {};
+  { Foo, Bar };
 
   static_assert(vir::refl::class_name<NotReflected<int, 5>> == "ns0::NotReflected");
   static_assert(vir::refl::class_name<Foo<int>> == "ns0::Foo");
@@ -215,6 +215,11 @@ namespace ns0
   static_assert(vir::refl::type_name<Bar<float>> == "ns0::Bar<float>");
   static_assert(vir::refl::type_name<Enum> == "ns0::Enum");
   static_assert(vir::refl::type_name<EnumClass> == "ns0::EnumClass");
+
+  static_assert(vir::refl::enum_name<A> == "ns0::A");
+  static_assert(vir::refl::enum_name<B> == "ns0::B");
+  static_assert(vir::refl::enum_name<C> == "ns0::C");
+  static_assert(vir::refl::enum_name<EnumClass::Foo> == "ns0::EnumClass::Foo");
 }
 
 struct Test

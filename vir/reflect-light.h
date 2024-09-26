@@ -207,6 +207,54 @@ namespace vir
           static_assert(offset + size <= fun_size);
           return fixed_string_arg<size>(fun + offset);
         }
+
+      template <auto X>
+        consteval auto
+        nttp_to_string()
+        {
+#ifdef __GNUC__
+          constexpr auto fun = __PRETTY_FUNCTION__;
+          constexpr size_t fun_size = sizeof(__PRETTY_FUNCTION__) - 1;
+          constexpr auto offset_size
+            = [&] () -> std::pair<size_t, size_t> {
+              size_t offset = 0;
+              for (; offset < fun_size and fun[offset] != '='; ++offset)
+                ;
+              if (offset + 2 >= fun_size or offset < 20 or fun[offset + 1] != ' '
+                    or fun[offset - 2] != 'X')
+                return {0, fun_size};
+              offset += 2; // skip over '= '
+              size_t size = 0;
+              for (; offset + size < fun_size and fun[offset + size] != ']'; ++size)
+                ;
+              return {offset, size};
+            }();
+#elif defined _MSC_VER
+          constexpr auto fun = __FUNCSIG__;
+          constexpr size_t fun_size = sizeof(__FUNCSIG__) - 1;
+          constexpr auto offset_size
+            = [&] () -> std::pair<size_t, size_t> {
+              size_t offset = 0;
+              for (; offset < fun_size and fun[offset] != '<'; ++offset)
+                ;
+              if (offset + 2 >= fun_size or offset < 20 or fun[offset - 1] != 'g')
+                return {0, fun_size};
+              offset += 1; // skip over '<'
+              size_t size = 0;
+              for (; offset + size < fun_size and fun[offset + size] != '('; ++size)
+                ;
+              return {offset, size - 1};
+            }();
+#else
+#error "Compiler not supported."
+#endif
+          constexpr size_t offset = offset_size.first;
+          constexpr size_t size = offset_size.second;
+          static_assert(offset < fun_size);
+          static_assert(size <= fun_size);
+          static_assert(offset + size <= fun_size);
+          return fixed_string_arg<size>(fun + offset);
+        }
     }
 
     template <typename T>
@@ -217,6 +265,11 @@ namespace vir
     template <typename T>
       inline constexpr auto type_name
         = fixed_string<detail::type_to_string(static_cast<T*>(nullptr))>();
+
+    template <auto T>
+      requires std::is_enum_v<decltype(T)>
+      inline constexpr auto enum_name
+        = fixed_string<detail::nttp_to_string<T>()>();
 
 #define VIR_SPECIALIZE_TYPE_NAME(T)                                                                \
     template <>                                                                                    \
