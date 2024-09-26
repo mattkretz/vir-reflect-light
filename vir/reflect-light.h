@@ -205,7 +205,30 @@ namespace vir
           static_assert(offset < fun_size);
           static_assert(size <= fun_size);
           static_assert(offset + size <= fun_size);
-          return fixed_string_arg<size>(fun + offset);
+          constexpr size_t comma_nospace_count = [&] {
+            size_t count = 0;
+            for (size_t i = offset; i < offset + size - 1; ++i)
+              {
+                if (fun[i] == ',' and fun[i + 1] != ' ')
+                  ++count;
+              }
+            return count;
+          }();
+          if constexpr (comma_nospace_count == 0)
+            return fixed_string_arg<size>(fun + offset);
+          else
+            {
+              char buf[size + comma_nospace_count + 1] = {};
+              size_t r = offset;
+              size_t w = 0;
+              for (;r < offset + size; ++w, ++r)
+                {
+                  buf[w] = fun[r];
+                  if (fun[r] == ',' and fun[r + 1] != ' ')
+                    buf[++w] = ' ';
+                }
+              return fixed_string_arg<size + comma_nospace_count>(buf);
+            }
         }
 
       template <auto X>

@@ -205,12 +205,7 @@ namespace ns0
   static_assert(vir::refl::class_name<Bar<float>> == "ns0::Bar");
   static_assert(vir::refl::class_name<Enum> == "ns0::Enum");
   static_assert(vir::refl::class_name<EnumClass> == "ns0::EnumClass");
-  static_assert(vir::refl::type_name<NotReflected<int, 5>>
-#ifdef __GNUC__
-                  == "ns0::NotReflected<int, 5>");
-#else
-                  == "ns0::NotReflected<int,5>");
-#endif
+  static_assert(vir::refl::type_name<NotReflected<int, 5>> == "ns0::NotReflected<int, 5>");
   static_assert(vir::refl::type_name<Foo<int>> == "ns0::Foo<int>");
   static_assert(vir::refl::type_name<Bar<float>> == "ns0::Bar<float>");
   static_assert(vir::refl::type_name<Enum> == "ns0::Enum");
