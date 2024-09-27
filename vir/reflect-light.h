@@ -486,7 +486,17 @@ namespace vir
         return r;
       }(std::make_index_sequence<data_member_count<T>>());
 
-    template <reflectable T, std::array Idxs = std::array<size_t, 0> {}>
+    namespace detail
+    {
+      template <size_t N, typename = decltype(std::make_index_sequence<N>())>
+        constexpr std::array<std::size_t, N> iota_array;
+
+      template <size_t N, size_t... Values>
+        constexpr std::array<std::size_t, N> iota_array<N, std::index_sequence<Values...>>
+          = {Values...};
+    }
+
+    template <reflectable T, std::array Idxs = detail::iota_array<data_member_count<T>>>
       using data_member_types = decltype([]<size_t... Is>(std::index_sequence<Is...>)
                                            -> vir::simple_tuple<data_member_type<T, Idxs[Is]>...>
       { return {}; }(std::make_index_sequence<Idxs.size()>()));

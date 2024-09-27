@@ -167,8 +167,9 @@ static_assert('a' + vir::fixed_string<"cd">() + 'f' == "acdf");
 constexpr auto
 f()
 {
-  vir::fixed_string<"Hello World!"> as_type;
-  constexpr auto and_now = "4× " + as_type + " How do you do?";
+  const vir::fixed_string<"Hello World!"> as_type;
+  //constexpr auto as_arg = as_type + ' ' + as_type;
+  constexpr auto and_now = "4× " + as_type + " How do you do?";// + as_arg;
   return vir::fixed_string<and_now>();
 }
 
@@ -382,6 +383,8 @@ static_assert(std::same_as<vir::refl::data_member_types<AndAnother, ARRAY{0, 1}>
                            vir::simple_tuple<int, int>>);
 static_assert(std::same_as<vir::refl::data_member_types<AndAnother, ARRAY{2, 5, 4}>,
                            vir::simple_tuple<int, char, double>>);
+static_assert(std::same_as<vir::refl::data_member_types<AndAnother>,
+                           vir::simple_tuple<int, int, int, float, double, char>>);
 #undef ARRAY
 
 namespace ns
