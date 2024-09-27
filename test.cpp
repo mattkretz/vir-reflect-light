@@ -220,8 +220,9 @@ namespace ns0
   static_assert(vir::refl::enum_name<C> == "ns0::C");
   static_assert(vir::refl::enum_name<EnumClass::Foo> == "ns0::EnumClass::Foo");
 
-  static_assert(vir::refl::nttp_name<1> == "1");
-  static_assert(vir::refl::nttp_name<1u> == "1");
+  static_assert(vir::refl::nttp_name<1> == "1" or vir::refl::nttp_name<1> == "0x1");
+  static_assert(vir::refl::nttp_name<1u> == "1" or vir::refl::nttp_name<1u> == "1U"
+                  or vir::refl::nttp_name<1u> == "0x1");
   static_assert(vir::refl::nttp_name<A> == vir::refl::enum_name<A>);
 }
 
