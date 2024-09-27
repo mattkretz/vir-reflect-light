@@ -387,6 +387,14 @@ static_assert(std::same_as<vir::refl::data_member_types<AndAnother>,
                            vir::simple_tuple<int, int, int, float, double, char>>);
 #undef ARRAY
 
+static_assert([] {
+  size_t sum = 0;
+  vir::refl::for_each_data_member_index<AndAnother>([&sum](auto idx) {
+    sum += idx;
+  });
+  return sum;
+}() == 0 + 1 + 2 + 3 + 4 + 5);
+
 namespace ns
 {
   template <typename T>

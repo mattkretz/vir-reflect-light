@@ -500,6 +500,15 @@ namespace vir
       using data_member_types = decltype([]<size_t... Is>(std::index_sequence<Is...>)
                                            -> vir::simple_tuple<data_member_type<T, Idxs[Is]>...>
       { return {}; }(std::make_index_sequence<Idxs.size()>()));
+
+    template <reflectable T>
+      constexpr void
+      for_each_data_member_index(auto&& fun)
+      {
+        [&]<size_t... Is>(std::index_sequence<Is...>) {
+          (fun(detail::ic<Is>), ...);
+        }(std::make_index_sequence<data_member_count<T>>());
+      }
   }
 }
 

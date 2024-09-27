@@ -182,3 +182,9 @@ constexpr std::array idxs = vir::refl::find_data_members_by_type<A, sizeof4>;
 Alias for a `vir::simple_tuple<...>` type where the tuple types are equal to 
 the data member types of `T` at the indexes given by `IndexArray`. If 
 `IndexArray` is omitted, all data members will be listed.
+
+### `vir::refl::for_each_data_member_index<T>(callable)`
+
+Calls the function `callable` with one argument of type 
+`std::integral_constant<std::size_t, i>`. The function is called for each `i` 
+in the half-open range `0` to `data_member_count<T>`.
