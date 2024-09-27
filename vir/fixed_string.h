@@ -174,7 +174,7 @@ namespace vir
         operator+(const char (&lhs)[N1], const fixed_string_arg& rhs) noexcept
         {
           return [&]<size_t... Is>(std::index_sequence<Is...>) {
-            return fixed_string_arg<N1 + N - 1>{(Is < N1 ? lhs[Is] : rhs[Is - N1])...};
+            return fixed_string_arg<N1 + N - 1>{(Is < N1 - 1 ? lhs[Is] : rhs[Is - N1 + 1])...};
           }(std::make_index_sequence<N1 + N - 1>());
         }
 

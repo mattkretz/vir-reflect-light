@@ -161,6 +161,9 @@ static_assert(vir::fixed_string_from_number_v<123> == "123");
 static_assert(vir::fixed_string_from_number_v<(1u<<31)> == "2147483648");
 static_assert(vir::fixed_string_from_number_v<int(1u<<31)> == "-2147483648");
 
+static_assert("ab" + vir::fixed_string<"cd">() + "ef" == "abcdef");
+static_assert('a' + vir::fixed_string<"cd">() + 'f' == "acdf");
+
 constexpr auto
 f()
 {

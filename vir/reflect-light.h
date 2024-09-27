@@ -10,6 +10,9 @@
 #include "simple_tuple.h"
 
 #include <array>
+#ifdef _MSC_VER
+#include <vector> // for type_name specialization
+#endif
 #include <string>
 
 // recursive macro implementation inspired by https://www.scs.stanford.edu/~dm/blog/va-opt.html
@@ -320,6 +323,12 @@ namespace vir
     VIR_SPECIALIZE_TYPE_NAME(std::string);
 
 #undef VIR_SPECIALIZE_TYPE_NAME
+
+#ifdef _MSC_VER
+    template <typename T>
+      inline constexpr auto type_name<std::vector<T>>
+        = vir::fixed_string<"std::vector<" + type_name<T> + '>'> {};
+#endif
 
     template <typename T>
       inline constexpr auto class_name
