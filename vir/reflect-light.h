@@ -63,20 +63,23 @@ public:                                                                         
   vir_refl_determine_base_type(T const&, ...)                                                      \
   {}                                                                                               \
                                                                                                    \
-  template <std::derived_from<T> U>                                                                \
-    requires (not std::is_same_v<U, T>)                                                            \
+  template <std::derived_from<T> VirRefl_U>                                                        \
+    requires (not std::is_same_v<VirRefl_U, T>)                                                    \
       and std::is_void_v<decltype(vir_refl_determine_base_type(                                    \
-                                    std::declval<vir::refl::detail::make_dependent_t<U, T>>(), 0))>\
+                                    std::declval<vir::refl::detail::make_dependent_t<              \
+                                                   VirRefl_U, T>>(), 0))>                          \
     friend T                                                                                       \
-    vir_refl_determine_base_type(U const&, int) { return std::declval<T>(); }                      \
+    vir_refl_determine_base_type(VirRefl_U const&, int)                                            \
+    { return std::declval<T>(); }                                                                  \
                                                                                                    \
-  template <std::derived_from<T> U, typename Not>                                                  \
-    requires (not std::is_same_v<U, T>) and (not std::derived_from<Not, T>)                        \
+  template <std::derived_from<T> VirRefl_U, typename VirRefl_Not>                                  \
+    requires (not std::is_same_v<VirRefl_U, T>) and (not std::derived_from<VirRefl_Not, T>)        \
       and std::is_void_v<decltype(vir_refl_determine_base_type(                                    \
-                                    std::declval<vir::refl::detail::make_dependent_t<U, T>>(),     \
-                                    std::declval<Not>()))>                                         \
+                                    std::declval<vir::refl::detail::make_dependent_t<              \
+                                                   VirRefl_U, T>>(), std::declval<VirRefl_Not>()))>\
     friend T                                                                                       \
-    vir_refl_determine_base_type(U const&, Not const&) { return std::declval<T>(); }               \
+    vir_refl_determine_base_type(VirRefl_U const&, VirRefl_Not const&)                             \
+    { return std::declval<T>(); }                                                                  \
                                                                                                    \
   using vir_refl_class_name = vir::fixed_string<#T>;                                               \
                                                                                                    \
