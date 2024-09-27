@@ -59,10 +59,16 @@ struct Point : Base
 Concept that is satisfied if the class `T` definition contains a valid 
 `VIR_MAKE_REFLECTABLE` expansion.
 
+### `vir::refl::nttp_name<X>`
+
+A `vir::fixed_string` object identifying the value/name of `X`. For integers 
+this will be a string representation of the value. For enums it is equivalent 
+to the following facility.
+
 ### `vir::refl::enum_name<X>`
 
 A `vir::fixed_string` object identifying the name of `X`. This name includes 
-namespaces. Note, for the name of the enum type use the following facility:
+namespaces. For the name of the enum type use the following facility:
 
 ### `vir::refl::type_name<T>`
 

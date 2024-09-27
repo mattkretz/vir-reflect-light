@@ -297,6 +297,10 @@ namespace vir
       inline constexpr auto enum_name
         = fixed_string<detail::nttp_to_string<T>()>();
 
+    template <auto T>
+      inline constexpr auto nttp_name
+        = fixed_string<detail::nttp_to_string<T>()>();
+
 #define VIR_SPECIALIZE_TYPE_NAME(T)                                                                \
     template <>                                                                                    \
       inline constexpr auto type_name<T> = vir::fixed_string<#T> {}
