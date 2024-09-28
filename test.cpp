@@ -354,7 +354,10 @@ static_assert(std::same_as<vir::refl::base_type<Further>, Derived>);
 
 struct AndAnother : Further
 {
-  VIR_MAKE_REFLECTABLE(AndAnother);
+  // static data members are also supported
+  inline static int baz = 1;
+
+  VIR_MAKE_REFLECTABLE(AndAnother, baz);
 };
 
 static_assert(vir::refl::reflectable<AndAnother>);
@@ -370,10 +373,17 @@ template <typename T, size_t Idx>
 using name_is_out = std::bool_constant<vir::refl::data_member_name<T, Idx> == "out">;
 
 static_assert(vir::refl::find_data_members<AndAnother, only_floats> == std::array<size_t, 1>{3});
-static_assert(vir::refl::find_data_members<AndAnother, only_ints> == std::array<size_t, 3>{0, 1, 2});
+static_assert(vir::refl::find_data_members<AndAnother, only_ints>
+                == std::array<size_t, 4>{0, 1, 2, 6});
 static_assert(vir::refl::find_data_members<AndAnother, name_is_out> == std::array<size_t, 1>{4});
 static_assert(vir::refl::find_data_members_by_type<AndAnother, std::is_floating_point>
                 == std::array<size_t, 2>{3, 4});
+
+static_assert([] {
+  AndAnother x;
+  auto& value = vir::refl::data_member<"baz">(x);
+  return &value == &AndAnother::baz;
+}());
 
 #if __clang__ < 18
 #define ARRAY std::array
@@ -385,7 +395,7 @@ static_assert(std::same_as<vir::refl::data_member_types<AndAnother, ARRAY{0, 1}>
 static_assert(std::same_as<vir::refl::data_member_types<AndAnother, ARRAY{2, 5, 4}>,
                            vir::simple_tuple<int, char, double>>);
 static_assert(std::same_as<vir::refl::data_member_types<AndAnother>,
-                           vir::simple_tuple<int, int, int, float, double, char>>);
+                           vir::simple_tuple<int, int, int, float, double, char, int>>);
 #undef ARRAY
 
 static_assert([] {
@@ -394,7 +404,7 @@ static_assert([] {
     sum += idx;
   });
   return sum;
-}() == 0 + 1 + 2 + 3 + 4 + 5);
+}() == 0 + 1 + 2 + 3 + 4 + 5 + 6);
 
 namespace ns
 {

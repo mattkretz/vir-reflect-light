@@ -32,8 +32,9 @@ make install prefix=/usr
 
 ### The macro `VIR_MAKE_REFLECTABLE`
 
-Add this macro inside of a class definition to make all listed class 
-(non-static) data members reflectable.
+Add this macro in the public section of a class definition to make all listed 
+class data members reflectable. The members that are not listed will be ignored 
+and not be reflectable.
 
 `VIR_MAKE_REFLECTABLE(<class name>, [<data member name>, [<data member name>, 
 [...]]])`
@@ -52,12 +53,37 @@ struct Point : Base
   float x, y, z;
   VIR_MAKE_REFLECTABLE(Point, x, y, z);
 };
+
+namespace yours
+{
+  template <typename T>
+  class Person
+  {
+    std::string first_name, last_name;
+    T height;
+    T weight;
+
+  public:
+    VIR_MAKE_REFLECTABLE(Person, height, weight);
+  };
+}
 ```
+
+In the above `yours::Person<T>` example, note that:
+
+1. VIR_MAKE_REFLECTABLE needs to be public.
+
+2. The class name `Person` in the macro can also be spelled as 
+   `yours::Person<T>`, or `Person<T>` but *not* as `yours::Person`.
+
+3. `first_name` and `last_name` will not be seen by the `vir::refl::` API. It 
+   is no error to omit them here if you want to hide them from the reflection 
+   API.
 
 ### `vir::refl::reflectable<T>`
 
 Concept that is satisfied if the class `T` definition contains a valid 
-`VIR_MAKE_REFLECTABLE` expansion.
+(`public`) `VIR_MAKE_REFLECTABLE` expansion.
 
 ### `vir::refl::nttp_name<X>`
 
@@ -82,14 +108,22 @@ includes namespaces but no template arguments.
 
 ### `vir::refl::base_type<T>`
 
-Alias for the base type of the type `T`. Does not support multiple inheritance. 
-If no base type exists (is known) an alias for `void`.
+Alias for the reflectable base type of the type `T`. If no base type exists (is 
+known) an alias for `void`.
+
+There is no support for inheriting from multiple reflectable base classes. But 
+multiple inheritance is otherwise not a problem. The derived class can also 
+make members of the non-reflectable base type reflectable.
+
+Given the above definition of `Point` and `Base`:
 
 - `vir::refl::base_type<Point>` is an alias for `Base<Point>`.
 
 - `vir::refl::base_type<Base>` is an alias for `void`.
 
 ### `vir::refl::data_member_count<T>`
+
+A `std::size_t` value identifying the number of reflectable data members.
 
 - `vir::refl::data_member_count<Point>` is `4`.
 

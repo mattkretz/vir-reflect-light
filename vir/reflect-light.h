@@ -58,7 +58,6 @@ namespace vir::refl::detail
 }
 
 #define VIR_MAKE_REFLECTABLE(T, ...)                                                               \
-public:                                                                                            \
   friend void                                                                                      \
   vir_refl_determine_base_type(T const&, ...)                                                      \
   {}                                                                                               \
