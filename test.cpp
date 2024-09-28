@@ -8,6 +8,7 @@
 #include <utility>
 #include <vector>
 #include <complex>
+#include <string>
 
 [[maybe_unused]] constexpr auto i0 = vir::refl::detail::ic<0>;
 [[maybe_unused]] constexpr auto i1 = vir::refl::detail::ic<1>;
@@ -163,6 +164,8 @@ static_assert(vir::fixed_string_from_number_v<int(1u<<31)> == "-2147483648");
 
 static_assert("ab" + vir::fixed_string<"cd">() + "ef" == "abcdef");
 static_assert('a' + vir::fixed_string<"cd">() + 'f' == "acdf");
+
+static_assert(std::constructible_from<std::string, vir::fixed_string<"foo">>);
 
 constexpr auto
 f()
