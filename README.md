@@ -42,13 +42,14 @@ and not be reflectable.
 Example:
 
 ```c++
+template <typename Derived>
 struct Base
 {
   int id;
   VIR_MAKE_REFLECTABLE(Base, id);
 };
 
-struct Point : Base
+struct Point : Base<Point>
 {
   float x, y, z;
   VIR_MAKE_REFLECTABLE(Point, x, y, z);
@@ -127,11 +128,11 @@ A `std::size_t` value identifying the number of reflectable data members.
 
 - `vir::refl::data_member_count<Point>` is `4`.
 
-- `vir::refl::data_member_count<Base>` is `1`.
+- `vir::refl::data_member_count<Base<Point>>` is `1`.
 
 ### `vir::refl::data_member_name<T, Idx>`
 
-- `vir::refl::data_member_name<Base, 0>` is `vir::fixed_string("id")`.
+- `vir::refl::data_member_name<Base<Point>, 0>` is `vir::fixed_string("id")`.
 
 - `vir::refl::data_member_name<Point, 0>` is `vir::fixed_string("id")`.
 
