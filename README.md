@@ -12,8 +12,8 @@ the following features:
 1. List the number of data members.
 
 2. Provide the variable names (identifiers) of the data members as 
-   `fixed_string` (which can be used as `std::string_view` via the `.view()` 
-   member on `fixed_string`.
+   `constexpr_string` (which can be used as `std::string_view` via the 
+   `.view()` member on `constexpr_string`.
 
 3. Access lvalue references to the data members of a given object using either 
    an index or the variable name.
@@ -88,23 +88,23 @@ Concept that is satisfied if the class `T` definition contains a valid
 
 ### `vir::refl::nttp_name<X>`
 
-A `vir::fixed_string` object identifying the value/name of `X`. For integers 
-this will be a string representation of the value. For enums it is equivalent 
-to the following facility.
+A `vir::constexpr_string` object identifying the value/name of `X`. For 
+integers this will be a string representation of the value. For enums it is 
+equivalent to the following facility.
 
 ### `vir::refl::enum_name<X>`
 
-A `vir::fixed_string` object identifying the name of `X`. This name includes 
-namespaces. For the name of the enum type use the following facility:
+A `vir::constexpr_string` object identifying the name of `X`. This name 
+includes namespaces. For the name of the enum type use the following facility:
 
 ### `vir::refl::type_name<T>`
 
-A `vir::fixed_string` object identifying the name of `T`. This name includes 
-namespaces and template arguments.
+A `vir::constexpr_string` object identifying the name of `T`. This name 
+includes namespaces and template arguments.
 
 ### `vir::refl::class_name<T>`
 
-A `vir::fixed_string` object identifying the class name of `T`. This name 
+A `vir::constexpr_string` object identifying the class name of `T`. This name 
 includes namespaces but no template arguments.
 
 ### `vir::refl::base_type<T>`
@@ -132,11 +132,12 @@ A `std::size_t` value identifying the number of reflectable data members.
 
 ### `vir::refl::data_member_name<T, Idx>`
 
-- `vir::refl::data_member_name<Base<Point>, 0>` is `vir::fixed_string("id")`.
+- `vir::refl::data_member_name<Base<Point>, 0>` is 
+`vir::constexpr_string("id")`.
 
-- `vir::refl::data_member_name<Point, 0>` is `vir::fixed_string("id")`.
+- `vir::refl::data_member_name<Point, 0>` is `vir::constexpr_string("id")`.
 
-- `vir::refl::data_member_name<Point, 1>` is `vir::fixed_string("x")`.
+- `vir::refl::data_member_name<Point, 1>` is `vir::constexpr_string("x")`.
 
 - ...
 
@@ -144,7 +145,7 @@ A `std::size_t` value identifying the number of reflectable data members.
 
 The index value of the data member with the name `Name` of class `T`.
 The name must match the name returned by `data_member_name`. It can be given as 
-a string literal or `vir::fixed_string_arg`.
+a string literal or `vir::fixed_string`.
 
 ### `vir::refl::data_member_type<T, Idx>` / `data_member_type<T, Name>`
 

@@ -118,69 +118,69 @@ namespace simple_tuple_test
   }
 }
 // ==============================================
-// ================ fixed_string ================
+// ================ constexpr_string ================
 // ==============================================
 
-static_assert(vir::fixed_string_arg("") == "");
-static_assert(vir::fixed_string_arg("text") == "text");
-static_assert(vir::fixed_string_arg("text") <= "text");
-static_assert(vir::fixed_string_arg("text") >= "text");
-static_assert(vir::fixed_string_arg("text") != "txet");
-static_assert(vir::fixed_string_arg("text") <  "txet");
-static_assert(vir::fixed_string_arg("text") <= "txet");
+static_assert(vir::fixed_string("") == "");
+static_assert(vir::fixed_string("text") == "text");
+static_assert(vir::fixed_string("text") <= "text");
+static_assert(vir::fixed_string("text") >= "text");
+static_assert(vir::fixed_string("text") != "txet");
+static_assert(vir::fixed_string("text") <  "txet");
+static_assert(vir::fixed_string("text") <= "txet");
 
-static_assert(""     == vir::fixed_string_arg(""));
-static_assert("text" == vir::fixed_string_arg("text"));
-static_assert("text" <= vir::fixed_string_arg("text"));
-static_assert("text" >= vir::fixed_string_arg("text"));
-static_assert("txet" != vir::fixed_string_arg("text"));
-static_assert("txet" >  vir::fixed_string_arg("text"));
-static_assert("txet" >= vir::fixed_string_arg("text"));
+static_assert(""     == vir::fixed_string(""));
+static_assert("text" == vir::fixed_string("text"));
+static_assert("text" <= vir::fixed_string("text"));
+static_assert("text" >= vir::fixed_string("text"));
+static_assert("txet" != vir::fixed_string("text"));
+static_assert("txet" >  vir::fixed_string("text"));
+static_assert("txet" >= vir::fixed_string("text"));
 
-static_assert(vir::fixed_string<"">() == "");
-static_assert(vir::fixed_string<"text">() == "text");
-static_assert(vir::fixed_string<"text">() <= "text");
-static_assert(vir::fixed_string<"text">() >= "text");
-static_assert(vir::fixed_string<"text">() != "txet");
-static_assert(vir::fixed_string<"text">() <  "txet");
-static_assert(vir::fixed_string<"text">() <= "txet");
+static_assert(vir::constexpr_string<"">() == "");
+static_assert(vir::constexpr_string<"text">() == "text");
+static_assert(vir::constexpr_string<"text">() <= "text");
+static_assert(vir::constexpr_string<"text">() >= "text");
+static_assert(vir::constexpr_string<"text">() != "txet");
+static_assert(vir::constexpr_string<"text">() <  "txet");
+static_assert(vir::constexpr_string<"text">() <= "txet");
 
-static_assert("" == vir::fixed_string<"">());
-static_assert("text" == vir::fixed_string<"text">());
-static_assert("text" <= vir::fixed_string<"text">());
-static_assert("text" >= vir::fixed_string<"text">());
-static_assert("txet" != vir::fixed_string<"text">());
-static_assert("txet" >  vir::fixed_string<"text">());
-static_assert("txet" >= vir::fixed_string<"text">());
+static_assert("" == vir::constexpr_string<"">());
+static_assert("text" == vir::constexpr_string<"text">());
+static_assert("text" <= vir::constexpr_string<"text">());
+static_assert("text" >= vir::constexpr_string<"text">());
+static_assert("txet" != vir::constexpr_string<"text">());
+static_assert("txet" >  vir::constexpr_string<"text">());
+static_assert("txet" >= vir::constexpr_string<"text">());
 
-static_assert(vir::fixed_string_from_number_v<0> == "0");
-static_assert(vir::fixed_string_from_number_v<7> == "7");
-static_assert(vir::fixed_string_from_number_v<9> == "9");
-static_assert(vir::fixed_string_from_number_v<10> == "10");
-static_assert(vir::fixed_string_from_number_v<-1> == "-1");
-static_assert(vir::fixed_string_from_number_v<123> == "123");
-static_assert(vir::fixed_string_from_number_v<(1u<<31)> == "2147483648");
-static_assert(vir::fixed_string_from_number_v<int(1u<<31)> == "-2147483648");
+static_assert(vir::constexpr_string_from_number_v<0> == "0");
+static_assert(vir::constexpr_string_from_number_v<7> == "7");
+static_assert(vir::constexpr_string_from_number_v<9> == "9");
+static_assert(vir::constexpr_string_from_number_v<10> == "10");
+static_assert(vir::constexpr_string_from_number_v<-1> == "-1");
+static_assert(vir::constexpr_string_from_number_v<123> == "123");
+static_assert(vir::constexpr_string_from_number_v<(1u<<31)> == "2147483648");
+static_assert(vir::constexpr_string_from_number_v<int(1u<<31)> == "-2147483648");
 
-static_assert("ab" + vir::fixed_string<"cd">() + "ef" == "abcdef");
-static_assert('a' + vir::fixed_string<"cd">() + 'f' == "acdf");
+static_assert("ab" + vir::constexpr_string<"cd">() + "ef" == "abcdef");
+static_assert('a' + vir::constexpr_string<"cd">() + 'f' == "acdf");
 
-static_assert(std::constructible_from<std::string, vir::fixed_string<"foo">>);
+static_assert(std::constructible_from<std::string, vir::constexpr_string<"foo">>);
 
 constexpr auto
 f()
 {
-  const vir::fixed_string<"Hello World!"> as_type;
+  const vir::constexpr_string<"Hello World!"> as_type;
   //constexpr auto as_arg = as_type + ' ' + as_type;
   constexpr auto and_now = "4× " + as_type + " How do you do?";// + as_arg;
-  return vir::fixed_string<and_now>();
+  return vir::constexpr_string<and_now>();
 }
 
 // ==============================================
 // =================  vir::refl =================
 // ==============================================
 
-static_assert(vir::refl::type_name<int> == vir::fixed_string<"int">());
+static_assert(vir::refl::type_name<int> == vir::constexpr_string<"int">());
 static_assert(vir::refl::type_name<float> == "float");
 static_assert(vir::refl::type_name<std::string> == "std::string");
 static_assert(vir::refl::type_name<std::array<int, 4>> == "std::array<int, 4>");

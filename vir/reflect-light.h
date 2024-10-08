@@ -31,7 +31,7 @@
 
 #define VIR_REFLECT_LIGHT_TO_STRINGS(...)                                                          \
   __VA_OPT__(VIR_REFLECT_LIGHT_EXPAND(VIR_REFLECT_LIGHT_TO_STRINGS_IMPL(__VA_ARGS__)))
-#define VIR_REFLECT_LIGHT_TO_STRINGS_IMPL(x, ...) ::vir::fixed_string<#x>()                        \
+#define VIR_REFLECT_LIGHT_TO_STRINGS_IMPL(x, ...) ::vir::constexpr_string<#x>()                        \
   __VA_OPT__(, VIR_REFLECT_LIGHT_TO_STRINGS_AGAIN VIR_REFLECT_LIGHT_PARENS(__VA_ARGS__))
 #define VIR_REFLECT_LIGHT_TO_STRINGS_AGAIN() VIR_REFLECT_LIGHT_TO_STRINGS_IMPL
 
@@ -80,7 +80,7 @@ namespace vir::refl::detail
     vir_refl_determine_base_type(VirRefl_U const&, VirRefl_Not const&)                             \
     { return std::declval<T>(); }                                                                  \
                                                                                                    \
-  using vir_refl_class_name = vir::fixed_string<#T>;                                               \
+  using vir_refl_class_name = vir::constexpr_string<#T>;                                               \
                                                                                                    \
   constexpr auto                                                                                   \
   vir_refl_members_as_tuple() &                                                                    \
@@ -220,7 +220,7 @@ namespace vir
             return count;
           }();
           if constexpr (comma_nospace_count == 0)
-            return fixed_string_arg<size>(fun + offset);
+            return fixed_string<size>(fun + offset);
           else
             {
               char buf[size + comma_nospace_count + 1] = {};
@@ -232,7 +232,7 @@ namespace vir
                   if (fun[r] == ',' and fun[r + 1] != ' ')
                     buf[++w] = ' ';
                 }
-              return fixed_string_arg<size + comma_nospace_count>(buf);
+              return fixed_string<size + comma_nospace_count>(buf);
             }
         }
 
@@ -281,7 +281,7 @@ namespace vir
           static_assert(offset < fun_size);
           static_assert(size <= fun_size);
           static_assert(offset + size <= fun_size);
-          return fixed_string_arg<size>(fun + offset);
+          return fixed_string<size>(fun + offset);
         }
     }
 
@@ -292,20 +292,20 @@ namespace vir
 
     template <typename T>
       inline constexpr auto type_name
-        = fixed_string<detail::type_to_string(static_cast<T*>(nullptr))>();
+        = constexpr_string<detail::type_to_string(static_cast<T*>(nullptr))>();
 
     template <auto T>
       requires std::is_enum_v<decltype(T)>
       inline constexpr auto enum_name
-        = fixed_string<detail::nttp_to_string<T>()>();
+        = constexpr_string<detail::nttp_to_string<T>()>();
 
     template <auto T>
       inline constexpr auto nttp_name
-        = fixed_string<detail::nttp_to_string<T>()>();
+        = constexpr_string<detail::nttp_to_string<T>()>();
 
 #define VIR_SPECIALIZE_TYPE_NAME(T)                                                                \
     template <>                                                                                    \
-      inline constexpr auto type_name<T> = vir::fixed_string<#T> {}
+      inline constexpr auto type_name<T> = vir::constexpr_string<#T> {}
 
     VIR_SPECIALIZE_TYPE_NAME(bool);
     VIR_SPECIALIZE_TYPE_NAME(char);
@@ -333,7 +333,7 @@ namespace vir
 #ifdef _MSC_VER
     template <typename T>
       inline constexpr auto type_name<std::vector<T>>
-        = vir::fixed_string<"std::vector<" + type_name<T> + '>'> {};
+        = vir::constexpr_string<"std::vector<" + type_name<T> + '>'> {};
 #endif
 
     template <typename T>
@@ -362,7 +362,7 @@ namespace vir
     template <typename T, size_t Idx>
       constexpr auto data_member_name = [] {
         static_assert(Idx < data_member_count<T>);
-        return vir::fixed_string<"Error">();
+        return vir::constexpr_string<"Error">();
       }();
 
     template <reflectable T, size_t Idx>
@@ -374,7 +374,7 @@ namespace vir
       constexpr auto data_member_name<T, Idx>
         = T::vir_refl_data_member_names[detail::ic<Idx - data_member_count<base_type<T>>>];
 
-    template <reflectable T, fixed_string_arg Name>
+    template <reflectable T, fixed_string Name>
       constexpr auto data_member_index
         = detail::ic<[]<size_t... Is>(std::index_sequence<Is...>) {
                       return ((Name == data_member_name<T, Is>.value ? Is : 0) + ...);
@@ -393,7 +393,7 @@ namespace vir
           return obj.vir_refl_members_as_tuple()[detail::ic<Idx - base_size>];
       }
 
-    template <fixed_string_arg Name>
+    template <fixed_string Name>
       constexpr decltype(auto)
       data_member(reflectable auto&& obj)
       { return data_member<data_member_index<std::remove_cvref_t<decltype(obj)>, Name>>(obj); }
@@ -412,7 +412,7 @@ namespace vir
     {
       template <size_t N>
         struct data_member_id
-        : vir::fixed_string_arg<N>
+        : vir::fixed_string<N>
         {
           static constexpr bool is_name = N != 0;
 
@@ -420,15 +420,15 @@ namespace vir
 
           consteval
           data_member_id(const char* txt) requires (N != 0)
-            : fixed_string_arg<N>(txt), index(-1)
+            : fixed_string<N>(txt), index(-1)
           {}
 
           consteval
           data_member_id(std::convertible_to<size_t> auto idx) requires (N == 0)
-            : fixed_string_arg<0>(), index(idx)
+            : fixed_string<0>(), index(idx)
           {}
 
-          consteval vir::fixed_string_arg<N> const&
+          consteval vir::fixed_string<N> const&
           string() const
           { return *this; }
         };
@@ -506,6 +506,34 @@ namespace vir
       {
         [&]<size_t... Is>(std::index_sequence<Is...>) {
           (fun(detail::ic<Is>), ...);
+        }(std::make_index_sequence<data_member_count<T>>());
+      }
+
+    template <reflectable T, size_t Idx>
+      struct data_member_descriptor
+      {
+        static constexpr std::integral_constant<size_t, Idx> index {};
+
+        using type = data_member_type<T, Idx>;
+
+        template <template <typename> class Traits>
+          static constexpr bool satisfies = Traits<type>::value;
+
+        template <template <typename> class... Traits>
+          static constexpr bool satisfies_all = (Traits<type>::value and ...);
+
+        template <template <typename> class... Traits>
+          static constexpr bool satisfies_any = (Traits<type>::value or ...);
+
+        static constexpr auto name = data_member_name<T, Idx>;
+      };
+
+    template <reflectable T>
+      constexpr void
+      for_each_data_member(auto&& fun)
+      {
+        [&]<size_t... Is>(std::index_sequence<Is...>) {
+          (fun(data_member_descriptor<T, Is>{}), ...);
         }(std::make_index_sequence<data_member_count<T>>());
       }
   }
