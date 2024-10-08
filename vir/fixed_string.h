@@ -18,11 +18,6 @@ namespace vir
 
   namespace detail
   {
-    // This places a string in .rodata without ever duplicating it in the final binary. It is used
-    // to guard against dangling pointers from constexpr_string::c_str()/data()/view().
-    template <fixed_string X>
-      inline constexpr auto string_storage = X;
-
     template <typename T>
       struct possible_constexpr_string_tmpl_args;
 
@@ -293,15 +288,15 @@ namespace vir
       // string operations
       consteval const_pointer
       c_str() const noexcept
-      { return detail::string_storage<S>.data_; }
+      { return S.data_; }
 
       consteval const_pointer
       data() const noexcept
-      { return detail::string_storage<S>.data_; }
+      { return S.data_; }
 
       consteval std::string_view
       view() const noexcept
-      { return {detail::string_storage<S>.data_, size}; }
+      { return {S.data_, size}; }
 
       consteval
       operator std::string_view() const noexcept
