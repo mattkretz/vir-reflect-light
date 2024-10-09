@@ -206,22 +206,39 @@ namespace vir
         }
 
       // [fixed.string.comparison], non-member comparison functions
-      template <size_t N2>
-        friend constexpr bool
-        operator==(const fixed_string& lhs, const fixed_string<N2>& rhs)
-        { return lhs.view() == rhs.view(); }
+      friend constexpr bool
+      operator==(const fixed_string& lhs, const fixed_string& rhs)
+      {
+        if constexpr (N == 0)
+          return true;
+        else
+          return lhs.view() == rhs.view();
+      }
 
       template <size_t N2>
+        requires (N2 != N)
         friend constexpr bool
-        operator==(const fixed_string& lhs, const char (&rhs)[N2])
-        { return lhs.view() == std::string_view(rhs, rhs + N2 - 1); }
+        operator==(const fixed_string&, const fixed_string<N2>&)
+        { return false; }
 
       template <size_t N2>
+        requires (N2 != N + 1)
+        friend constexpr bool
+        operator==(const fixed_string&, const char (&)[N2])
+        { return false; }
+
+      friend constexpr decltype(auto)
+      operator<=>(const fixed_string& lhs, const fixed_string& rhs)
+      { return lhs.view() <=> rhs.view(); }
+
+      template <size_t N2>
+        requires (N2 != N + 1)
         friend constexpr decltype(auto)
         operator<=>(const fixed_string& lhs, const fixed_string<N2>& rhs)
         { return lhs.view() <=> rhs.view(); }
 
       template <size_t N2>
+        requires (N2 != N + 1)
         friend constexpr decltype(auto)
         operator<=>(const fixed_string& lhs, const char (&rhs)[N2])
         { return lhs.view() <=> std::string_view(rhs, rhs + N2 - 1); }
@@ -251,8 +268,8 @@ namespace vir
       static constexpr auto value = S;
 
       constexpr
-      operator T() const
-      { return value; }
+      operator const T&() const
+      { return S; }
 
       // types
       using value_type = char;
@@ -335,27 +352,6 @@ namespace vir
         consteval constexpr_string<substring(S, Offset(), NewSize())>
         substring(Offset, NewSize = {}) const noexcept
         { return {}; }
-
-      // non-member comparison functions
-      template <fixed_string S2>
-        friend constexpr bool
-        operator==(constexpr_string, constexpr_string<S2>)
-        { return S == S2; }
-
-      template <size_t N2>
-        friend constexpr bool
-        operator==(constexpr_string, const char (&rhs)[N2])
-        { return S == rhs; }
-
-      template <fixed_string S2>
-        friend constexpr decltype(auto)
-        operator<=>(constexpr_string, constexpr_string<S2>)
-        { return S <=> S2; }
-
-      template <size_t N2>
-        friend constexpr decltype(auto)
-        operator<=>(constexpr_string, const char (&rhs)[N2])
-        { return S <=> rhs; }
     };
 
   namespace detail

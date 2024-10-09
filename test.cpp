@@ -129,6 +129,19 @@ static_assert(vir::fixed_string("text") != "txet");
 static_assert(vir::fixed_string("text") <  "txet");
 static_assert(vir::fixed_string("text") <= "txet");
 
+static_assert(vir::fixed_string("text") != "123");
+static_assert(vir::fixed_string("text") != "12345");
+
+static_assert(vir::fixed_string("text") < "texta");
+static_assert(vir::fixed_string("text") < "tey");
+static_assert(vir::fixed_string("text") <= "texta");
+static_assert(vir::fixed_string("text") <= "tey");
+
+static_assert(vir::fixed_string("text") > "teata");
+static_assert(vir::fixed_string("text") > "tea");
+static_assert(vir::fixed_string("text") >= "teata");
+static_assert(vir::fixed_string("text") >= "tea");
+
 static_assert(""     == vir::fixed_string(""));
 static_assert("text" == vir::fixed_string("text"));
 static_assert("text" <= vir::fixed_string("text"));
@@ -137,13 +150,41 @@ static_assert("txet" != vir::fixed_string("text"));
 static_assert("txet" >  vir::fixed_string("text"));
 static_assert("txet" >= vir::fixed_string("text"));
 
+static_assert("123"   != vir::fixed_string("text"));
+static_assert("12345" != vir::fixed_string("text"));
+
+static_assert("texta" >  vir::fixed_string("text"));
+static_assert("tey"   >  vir::fixed_string("text"));
+static_assert("texta" >= vir::fixed_string("text"));
+static_assert("tey"   >= vir::fixed_string("text"));
+
+static_assert("teata" <  vir::fixed_string("text"));
+static_assert("tea"   <  vir::fixed_string("text"));
+static_assert("teata" <= vir::fixed_string("text"));
+static_assert("tea"   <= vir::fixed_string("text"));
+
 static_assert(vir::constexpr_string<"">() == "");
 static_assert(vir::constexpr_string<"text">() == "text");
 static_assert(vir::constexpr_string<"text">() <= "text");
+static_assert(vir::constexpr_string<"text">() <= vir::fixed_string("text"));
+static_assert(vir::constexpr_string<"text">() <= vir::constexpr_string<"text">());
 static_assert(vir::constexpr_string<"text">() >= "text");
 static_assert(vir::constexpr_string<"text">() != "txet");
 static_assert(vir::constexpr_string<"text">() <  "txet");
 static_assert(vir::constexpr_string<"text">() <= "txet");
+
+static_assert(vir::constexpr_string<"text">() != "123");
+static_assert(vir::constexpr_string<"text">() != "12345");
+
+static_assert(vir::constexpr_string<"text">() < "texta");
+static_assert(vir::constexpr_string<"text">() < "tey");
+static_assert(vir::constexpr_string<"text">() <= "texta");
+static_assert(vir::constexpr_string<"text">() <= "tey");
+
+static_assert(vir::constexpr_string<"text">() > "teata");
+static_assert(vir::constexpr_string<"text">() > "tea");
+static_assert(vir::constexpr_string<"text">() >= "teata");
+static_assert(vir::constexpr_string<"text">() >= "tea");
 
 static_assert("" == vir::constexpr_string<"">());
 static_assert("text" == vir::constexpr_string<"text">());
@@ -152,6 +193,19 @@ static_assert("text" >= vir::constexpr_string<"text">());
 static_assert("txet" != vir::constexpr_string<"text">());
 static_assert("txet" >  vir::constexpr_string<"text">());
 static_assert("txet" >= vir::constexpr_string<"text">());
+
+static_assert("123"   != vir::constexpr_string<"text">());
+static_assert("12345" != vir::constexpr_string<"text">());
+
+static_assert("texta" >  vir::constexpr_string<"text">());
+static_assert("tey"   >  vir::constexpr_string<"text">());
+static_assert("texta" >= vir::constexpr_string<"text">());
+static_assert("tey"   >= vir::constexpr_string<"text">());
+
+static_assert("teata" <  vir::constexpr_string<"text">());
+static_assert("tea"   <  vir::constexpr_string<"text">());
+static_assert("teata" <= vir::constexpr_string<"text">());
+static_assert("tea"   <= vir::constexpr_string<"text">());
 
 static_assert(vir::constexpr_string_from_number_v<0> == "0");
 static_assert(vir::constexpr_string_from_number_v<7> == "7");
