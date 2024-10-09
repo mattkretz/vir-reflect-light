@@ -7,6 +7,7 @@
 #define VIR_FIXED_STRING_H_
 
 #include <concepts>
+#include <memory>
 #include <string_view>
 
 namespace vir
@@ -38,6 +39,9 @@ namespace vir
       struct possible_constexpr_string_tmpl_args<Str<N, char>>
       : std::integral_constant<size_t, N>
       {};
+
+    struct empty_string_data
+    {};
   }
 
   template <typename T>
@@ -49,7 +53,7 @@ namespace vir
     class fixed_string
     {
     public:
-      const char data_[N + 1] = {};
+      std::conditional_t<N == 0, detail::empty_string_data, char[N == 0 ? 1 : N]> data_;
 
       // types
       using value_type = char;
@@ -57,26 +61,40 @@ namespace vir
       using const_pointer = const value_type*;
       using reference = value_type&;
       using const_reference = const value_type&;
+      using iterator = value_type*;
+      using const_iterator = const value_type*;  // see fixed.string.iterators
       using size_type = size_t;
       using difference_type = std::ptrdiff_t;
 
-      // [fixed.string.cons], construction and assignment
+      // internal
+      template <size_t... Is>
+        constexpr explicit
+        fixed_string(std::index_sequence<Is...>, const char *txt) noexcept
+        : data_{txt[Is]...}
+        { static_assert(sizeof...(Is) == N); }
+
+      // construction and assignment
+      constexpr
+      fixed_string() = default;
+
       template <std::convertible_to<char>... Chars>
         requires(sizeof...(Chars) == N) and (... and not std::is_pointer_v<Chars>)
+          and (N != 0)
         constexpr explicit
         fixed_string(Chars... chars) noexcept
         : data_{static_cast<char>(chars)...}
         {}
 
-      template <size_t... Is>
-        constexpr
-        fixed_string(std::index_sequence<Is...>, const char *txt) noexcept
-        : data_{txt[Is]...}
-        { static_assert(sizeof...(Is) == N); }
+      consteval // implicit conversion from string-literals
+      fixed_string(const char (&str)[N + 1]) noexcept
+      : fixed_string(std::make_index_sequence<N>(), str)
+      {}
 
+      // precondition: std::distance(begin, end) == N
+      template <typename It, std::sentinel_for<It> S>
       constexpr
-      fixed_string(const char *txt) noexcept
-      : fixed_string(std::make_index_sequence<N>(), txt)
+      fixed_string(It begin, S /*end*/) noexcept
+      : fixed_string(std::make_index_sequence<N>(), std::to_address(begin))
       {}
 
       constexpr
@@ -91,6 +109,46 @@ namespace vir
       constexpr fixed_string&
       operator=(const fixed_string&) noexcept = default;
 
+      // iterator support
+      constexpr iterator
+      begin() noexcept
+      {
+        if constexpr (N == 0)
+          return nullptr;
+        else
+          return data_;
+      }
+
+      constexpr const_iterator
+      begin() const noexcept
+      {
+        if constexpr (N == 0)
+          return nullptr;
+        else
+          return data_;
+      }
+
+      constexpr iterator
+      end() noexcept
+      { return begin() + N; }
+
+      constexpr const_iterator
+      end() const noexcept
+      { return begin() + N; }
+
+      constexpr const_iterator
+      cbegin() const noexcept
+      {
+        if constexpr (N == 0)
+          return nullptr;
+        else
+          return data_;
+      }
+
+      constexpr const_iterator
+      cend() const noexcept
+      { return cbegin() + N; }
+
       // capacity
       static constexpr std::integral_constant<size_type, N> size{};
 
@@ -98,39 +156,61 @@ namespace vir
 
       static constexpr std::integral_constant<size_type, N> max_size{};
 
-      static constexpr std::bool_constant<N == 0> empty{};
+      [[nodiscard]] static constexpr bool
+      empty() noexcept
+      { return N == 0; }
 
       // element access
-      constexpr const_reference
-      operator[](size_type pos) const
+      constexpr reference
+      operator[](size_type pos)
+      requires (N != 0)
       { return data_[pos]; }
 
       constexpr const_reference
-      front() const
+      operator[](size_type pos) const
+      requires (N != 0)
+      { return data_[pos]; }
+
+      constexpr reference
+      front()
+      requires (N != 0)
       { return data_[0]; }
 
       constexpr const_reference
+      front() const
+      requires (N != 0)
+      { return data_[0]; }
+
+      constexpr reference
+      back()
+      requires (N != 0)
+      { return data_[N - 1]; }
+
+      constexpr const_reference
       back() const
+      requires (N != 0)
       { return data_[N - 1]; }
 
       // [fixed.string.ops], string operations
       constexpr const_pointer
-      c_str() const noexcept
-      { return data_; }
-
-      constexpr const_pointer
       data() const noexcept
+      requires (N != 0)
       { return data_; }
 
       constexpr std::string_view
       view() const noexcept
-      { return {data_, N}; }
+      {
+        if constexpr (N == 0)
+          return {};
+        else
+          return {data_, N};
+      }
 
       constexpr
       operator std::string_view() const noexcept
-      { return {data_, N}; }
+      { return view(); }
 
-      template <size_t N2>
+      template <size_t N2 = N>
         constexpr friend fixed_string<N + N2>
         operator+(const fixed_string& lhs, const fixed_string<N2>& rhs) noexcept
         {
@@ -142,46 +222,63 @@ namespace vir
       constexpr friend fixed_string<N + 1>
       operator+(const fixed_string& lhs, char rhs) noexcept
       {
-        return [&]<size_t... Is>(std::index_sequence<Is...>) {
-          return fixed_string<N + 1>{(Is < N ? lhs[Is] : rhs)...};
-        }(std::make_index_sequence<N + 1>());
+        if constexpr (N == 0)
+          return fixed_string<1>(rhs);
+        else
+          return [&]<size_t... Is>(std::index_sequence<Is...>) {
+            return fixed_string<N + 1>{(Is < N ? lhs[Is] : rhs)...};
+          }(std::make_index_sequence<N + 1>());
       }
 
       constexpr friend fixed_string<1 + N>
       operator+(const char lhs, const fixed_string& rhs) noexcept
       {
-        return [&]<size_t... Is>(std::index_sequence<Is...>) {
-          return fixed_string<N + 1>{(Is < 1 ? lhs : rhs[Is - 1])...};
-        }(std::make_index_sequence<N + 1>());
+        if constexpr (N == 0)
+          return fixed_string<1>(lhs);
+        else
+          return [&]<size_t... Is>(std::index_sequence<Is...>) {
+            return fixed_string<N + 1>{(Is < 1 ? lhs : rhs[Is - 1])...};
+          }(std::make_index_sequence<N + 1>());
       }
 
       template <size_t N2>
         constexpr friend fixed_string<N + N2 - 1>
         operator+(const fixed_string& lhs, const char (&rhs)[N2]) noexcept
         {
-          return [&]<size_t... Is>(std::index_sequence<Is...>) {
-            return fixed_string<N + N2 - 1>{(Is < N ? lhs[Is] : rhs[Is - N])...};
-          }(std::make_index_sequence<N + N2 - 1>());
+          if constexpr (N == 0)
+            return fixed_string<N2 - 1>(rhs, rhs + N2 - 1);
+          else
+            return [&]<size_t... Is>(std::index_sequence<Is...>) {
+              return fixed_string<N + N2 - 1>{(Is < N ? lhs[Is] : rhs[Is - N])...};
+            }(std::make_index_sequence<N + N2 - 1>());
         }
 
       template <size_t N1>
         constexpr friend fixed_string<N1 + N - 1>
         operator+(const char (&lhs)[N1], const fixed_string& rhs) noexcept
         {
-          return [&]<size_t... Is>(std::index_sequence<Is...>) {
-            return fixed_string<N1 + N - 1>{(Is < N1 - 1 ? lhs[Is] : rhs[Is - N1 + 1])...};
-          }(std::make_index_sequence<N1 + N - 1>());
+          if constexpr (N == 0)
+            return fixed_string<N1 - 1>(lhs, lhs + N1 - 1);
+          else
+            return [&]<size_t... Is>(std::index_sequence<Is...>) {
+              return fixed_string<N1 + N - 1>{(Is < N1 - 1 ? lhs[Is] : rhs[Is - N1 + 1])...};
+            }(std::make_index_sequence<N1 + N - 1>());
         }
 
       constexpr size_t
       find_char(char c) const noexcept
       {
-        for (size_t i = 0; i < N; ++i)
+        if constexpr (N == 0)
+          return 0;
+        else
           {
-            if (data_[i] == c)
-              return i;
+            for (size_t i = 0; i < N; ++i)
+              {
+                if (data_[i] == c)
+                  return i;
+              }
+            return N;
           }
-        return N;
       }
 
       template <typename NewSize>
@@ -303,10 +400,6 @@ namespace vir
       { return S.back(); }
 
       // string operations
-      consteval const_pointer
-      c_str() const noexcept
-      { return S.data_; }
-
       consteval const_pointer
       data() const noexcept
       { return S.data_; }

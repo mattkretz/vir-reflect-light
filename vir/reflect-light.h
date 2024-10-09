@@ -156,133 +156,103 @@ namespace vir
       template <auto X>
         inline constexpr std::integral_constant<std::remove_const_t<decltype(X)>, X> ic = {};
 
-      template <typename T>
-        consteval auto
-        type_to_string(T*)
+      template <fixed_string str>
+        constexpr auto
+        normalize_comma()
         {
-#ifdef __GNUC__
-          constexpr auto fun = __PRETTY_FUNCTION__;
-          constexpr size_t fun_size = sizeof(__PRETTY_FUNCTION__) - 1;
-          constexpr auto offset_size
-            = [&] () -> std::pair<size_t, size_t> {
-              size_t offset = 0;
-              for (; offset < fun_size and fun[offset] != '='; ++offset)
-                ;
-              if (offset + 2 >= fun_size or offset < 20 or fun[offset + 1] != ' '
-                    or fun[offset - 2] != 'T')
-                return {0, fun_size};
-              offset += 2; // skip over '= '
-              size_t size = 0;
-              for (; offset + size < fun_size and fun[offset + size] != ']'; ++size)
-                ;
-              return {offset, size};
-            }();
-#elif defined _MSC_VER
-          constexpr auto fun = __FUNCSIG__;
-          constexpr size_t fun_size = sizeof(__FUNCSIG__) - 1;
-          constexpr auto offset_size
-            = [&] () -> std::pair<size_t, size_t> {
-              size_t offset = 0;
-              for (; offset < fun_size and fun[offset] != '<'; ++offset)
-                ;
-              if (offset + 2 >= fun_size or offset < 20 or fun[offset - 1] != 'g')
-                return {0, fun_size};
-              offset += 1; // skip over '<'
-              // remove 'struct ', 'union ', 'class ', or 'enum ' prefix.
-              if (std::string_view(fun + offset, 7) == "struct ")
-                offset += 7;
-              else if (std::string_view(fun + offset, 6) == "class ")
-                offset += 6;
-              else if (std::string_view(fun + offset, 6) == "union ")
-                offset += 6;
-              else if (std::string_view(fun + offset, 5) == "enum ")
-                offset += 5;
-              size_t size = 0;
-              for (; offset + size < fun_size and fun[offset + size] != '('; ++size)
-                ;
-              return {offset, size - 1};
-            }();
-#else
-#error "Compiler not supported."
-#endif
-          constexpr size_t offset = offset_size.first;
-          constexpr size_t size = offset_size.second;
-          static_assert(offset < fun_size);
-          static_assert(size <= fun_size);
-          static_assert(offset + size <= fun_size);
-          constexpr size_t comma_nospace_count = [&] {
+          constexpr size_t comma_nospace_count = [] {
             size_t count = 0;
-            for (size_t i = offset; i < offset + size - 1; ++i)
+            for (size_t i = 0; i < str.size - 1; ++i)
               {
-                if (fun[i] == ',' and fun[i + 1] != ' ')
+                if (str[i] == ',' and str[i + 1] != ' ')
                   ++count;
               }
             return count;
           }();
           if constexpr (comma_nospace_count == 0)
-            return fixed_string<size>(fun + offset);
+            return str;
           else
             {
-              char buf[size + comma_nospace_count + 1] = {};
-              size_t r = offset;
-              size_t w = 0;
-              for (;r < offset + size; ++w, ++r)
+              fixed_string<str.size + comma_nospace_count> result = {};
+              auto it = str.cbegin();
+              bool last_was_comma = false;
+              for (char& c : result)
                 {
-                  buf[w] = fun[r];
-                  if (fun[r] == ',' and fun[r + 1] != ' ')
-                    buf[++w] = ' ';
+                  if (last_was_comma and *it != ' ')
+                    c = ' ';
+                  else
+                    c = *it++;
+                  last_was_comma = (c == ',');
                 }
-              return fixed_string<size + comma_nospace_count>(buf);
+              return result;
             }
+        }
+
+      template <fixed_string fun, char Identifier>
+        consteval std::pair<size_t, size_t>
+        find_template_argument_string()
+        {
+          size_t offset = 0;
+#ifdef __GNUC__
+          for (; offset < fun.size and fun[offset] != '='; ++offset)
+            ;
+          if (offset + 2 >= fun.size or offset < 20 or fun[offset + 1] != ' '
+                or fun[offset - 2] != Identifier)
+            return {0, fun.size};
+          offset += 2; // skip over '= '
+          size_t size = 0;
+          for (; offset + size < fun.size and fun[offset + size] != ']'; ++size)
+            ;
+          return {offset, size};
+#elif defined _MSC_VER
+          for (; offset < fun.size and fun[offset] != '<'; ++offset)
+            ;
+          if (offset + 2 >= fun.size or offset < 20 or fun[offset - 1] != 'g')
+            return {0, fun.size};
+          offset += 1; // skip over '<'
+          // remove 'struct ', 'union ', 'class ', or 'enum ' prefix.
+          if (fun.view().substr(offset, 7) == "struct ")
+            offset += 7;
+          else if (fun.view().substr(offset, 6) == "class ")
+            offset += 6;
+          else if (fun.view().substr(offset, 6) == "union ")
+            offset += 6;
+          else if (fun.view().substr(offset, 5) == "enum ")
+            offset += 5;
+          size_t size = 0;
+          for (; offset + size < fun.size and fun[offset + size] != '('; ++size)
+            ;
+          return {offset, size - 1};
+#else
+#error "Compiler not supported."
+#endif
+        }
+
+#ifdef __GNUC__
+#define VIR_PRETTY_FUNCTION __PRETTY_FUNCTION__
+#elif defined _MSC_VER
+#define VIR_PRETTY_FUNCTION __FUNCSIG__
+#endif
+
+      template <typename T>
+        consteval auto
+        type_to_string(T*)
+        {
+          constexpr fixed_string fun(VIR_PRETTY_FUNCTION);
+          constexpr auto offset_size = find_template_argument_string<fun, 'T'>();
+          return normalize_comma<substring(fun, ic<offset_size.first>, ic<offset_size.second>)>();
         }
 
       template <auto X>
         consteval auto
         nttp_to_string()
         {
-#ifdef __GNUC__
-          constexpr auto fun = __PRETTY_FUNCTION__;
-          constexpr size_t fun_size = sizeof(__PRETTY_FUNCTION__) - 1;
-          constexpr auto offset_size
-            = [&] () -> std::pair<size_t, size_t> {
-              size_t offset = 0;
-              for (; offset < fun_size and fun[offset] != '='; ++offset)
-                ;
-              if (offset + 2 >= fun_size or offset < 20 or fun[offset + 1] != ' '
-                    or fun[offset - 2] != 'X')
-                return {0, fun_size};
-              offset += 2; // skip over '= '
-              size_t size = 0;
-              for (; offset + size < fun_size and fun[offset + size] != ']'; ++size)
-                ;
-              return {offset, size};
-            }();
-#elif defined _MSC_VER
-          constexpr auto fun = __FUNCSIG__;
-          constexpr size_t fun_size = sizeof(__FUNCSIG__) - 1;
-          constexpr auto offset_size
-            = [&] () -> std::pair<size_t, size_t> {
-              size_t offset = 0;
-              for (; offset < fun_size and fun[offset] != '<'; ++offset)
-                ;
-              if (offset + 2 >= fun_size or offset < 20 or fun[offset - 1] != 'g')
-                return {0, fun_size};
-              offset += 1; // skip over '<'
-              size_t size = 0;
-              for (; offset + size < fun_size and fun[offset + size] != '('; ++size)
-                ;
-              return {offset, size - 1};
-            }();
-#else
-#error "Compiler not supported."
-#endif
-          constexpr size_t offset = offset_size.first;
-          constexpr size_t size = offset_size.second;
-          static_assert(offset < fun_size);
-          static_assert(size <= fun_size);
-          static_assert(offset + size <= fun_size);
-          return fixed_string<size>(fun + offset);
+          constexpr fixed_string fun(VIR_PRETTY_FUNCTION);
+          constexpr auto offset_size = find_template_argument_string<fun, 'X'>();
+          return substring(fun, ic<offset_size.first>, ic<offset_size.second>);
         }
+
+#undef VIR_PRETTY_FUNCTION
     }
 
     template <typename T>
@@ -419,7 +389,7 @@ namespace vir
           const size_t index;
 
           consteval
-          data_member_id(const char* txt) requires (N != 0)
+          data_member_id(const char (&txt)[N + 1]) requires (N != 0)
             : fixed_string<N>(txt), index(-1)
           {}
 

@@ -122,6 +122,15 @@ namespace simple_tuple_test
 // ==============================================
 
 static_assert(vir::fixed_string("") == "");
+static_assert(vir::fixed_string("") + "" == "");
+static_assert("" + vir::fixed_string("") == "");
+static_assert(vir::fixed_string("") + 'a' == "a");
+static_assert('a' + vir::fixed_string("") == "a");
+static_assert(vir::fixed_string("") + "a" == "a");
+static_assert("a" + vir::fixed_string("") == "a");
+static_assert(vir::fixed_string("").empty());
+static_assert(not ("a" + vir::fixed_string("")).empty());
+
 static_assert(vir::fixed_string("text") == "text");
 static_assert(vir::fixed_string("text") <= "text");
 static_assert(vir::fixed_string("text") >= "text");
@@ -502,7 +511,7 @@ static_assert(vir::refl::data_member_count<Type3> == 4);
 
 const char*
 string_test()
-{ return vir::refl::class_name<ns::Type<int>>.c_str(); }
+{ return vir::refl::class_name<ns::Type<int>>.data(); }
 
 std::string_view
 string_test2()
@@ -510,4 +519,4 @@ string_test2()
 
 const char*
 member_name_string0()
-{ return vir::refl::data_member_name<ns::Type<char>, 0>.c_str(); }
+{ return vir::refl::data_member_name<ns::Type<char>, 0>.data(); }
